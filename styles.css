@@ -11,21 +11,51 @@ body {
 .container {
     display: flex;
     height: 100vh;
+    overflow: hidden; /* Prevent main window scroll */
 }
 
 .file-explorer {
     width: 250px;
     background-color: #252526;
     color: #fff;
-    padding: 10px;
     border-right: 1px solid #1e1e1e;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent explorer scroll bleeding */
+}
+
+#file-tree {
+    flex: 1;
+    overflow-y: auto; /* Add scrollbar to file tree */
+    overflow-x: hidden;
+}
+
+/* Customize scrollbar for file tree */
+#file-tree::-webkit-scrollbar {
+    width: 10px;
+}
+
+#file-tree::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+#file-tree::-webkit-scrollbar-thumb {
+    background: #424242;
+    border-radius: 5px;
+    border: 2px solid #1e1e1e;
+}
+
+#file-tree::-webkit-scrollbar-thumb:hover {
+    background: #4f4f4f;
 }
 
 .editor {
     flex: 1;
     background-color: #1e1e1e;
     color: #fff;
-    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent editor scroll bleeding */
 }
 
 .explorer-header {
@@ -152,10 +182,35 @@ body {
 }
 
 #editor-content {
-    height: calc(100% - 30px);
+    flex: 1;
     background-color: #1e1e1e;
-    padding: 10px;
+    padding: 16px;
     font-family: 'Consolas', 'Monaco', monospace;
     white-space: pre;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+/* Customize scrollbar for editor content */
+#editor-content::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+#editor-content::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+#editor-content::-webkit-scrollbar-thumb {
+    background: #424242;
+    border-radius: 5px;
+    border: 2px solid #1e1e1e;
+}
+
+#editor-content::-webkit-scrollbar-thumb:hover {
+    background: #4f4f4f;
+}
+
+#editor-content::-webkit-scrollbar-corner {
+    background: #1e1e1e;
 }
