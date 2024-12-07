@@ -3,12 +3,83 @@ class FileExplorer {
         this.currentPath = '';
         this.fileTree = document.getElementById('file-tree');
         this.editorContent = document.getElementById('editor-content');
+        this.expandedDirs = new Set();
+        this.lastOpenedFile = null;
         this.initialize();
     }
 
     async initialize() {
         this.addTreeEventListeners();
         this.setupOpenFolderButton();
+        await this.loadSavedState();
+        this.setupStateHandlers();
+    }
+
+    setupStateHandlers() {
+        // Save state when window is about to close
+        window.addEventListener('beforeunload', () => {
+            this.saveState();
+        });
+    }
+
+    async saveState() {
+        try {
+            const state = {
+                expandedDirs: Array.from(this.expandedDirs),
+                lastOpenedFile: this.lastOpenedFile
+            };
+            await window.fileSystem.saveState(state);
+        } catch (error) {
+            console.error('Error saving state:', error);
+        }
+    }
+
+    async loadSavedState() {
+        try {
+            const state = await window.fileSystem.loadState();
+            if (!state) return;
+
+            // Initialize expanded directories set
+            this.expandedDirs = new Set(Array.isArray(state.expandedDirs) ? state.expandedDirs : []);
+            
+            // Check if last opened directory exists and is accessible
+            if (state.lastOpenedDir) {
+                try {
+                    const isDir = await window.fileSystem.isDirectory(state.lastOpenedDir);
+                    if (isDir) {
+                        await this.openDirectory(state.lastOpenedDir);
+                        
+                        // Restore expanded directories
+                        for (const dir of this.expandedDirs) {
+                            try {
+                                const dirElement = this.fileTree.querySelector(`[data-path="${dir}"]`);
+                                const exists = await window.fileSystem.isDirectory(dir);
+                                if (dirElement && exists) {
+                                    dirElement.classList.add('expanded');
+                                    await this.expandDirectory(dirElement);
+                                }
+                            } catch (error) {
+                                console.warn(`Failed to restore expanded state for directory: ${dir}`, error);
+                            }
+                        }
+                        
+                        // Restore last opened file if it exists
+                        if (state.lastOpenedFile) {
+                            try {
+                                await window.fileSystem.readFile(state.lastOpenedFile);
+                                await this.loadFile(state.lastOpenedFile);
+                            } catch (error) {
+                                console.warn('Failed to restore last opened file:', error);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Last opened directory is no longer accessible:', error);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading saved state:', error);
+        }
     }
 
     setupOpenFolderButton() {
@@ -16,16 +87,11 @@ class FileExplorer {
         openFolderBtn.addEventListener('click', async () => {
             const folderPath = await window.fileSystem.selectFolder();
             if (folderPath) {
-                this.currentPath = folderPath;
-                this.fileTree.innerHTML = '';
-                const rootItem = this.createTreeItem({
-                    name: window.path.basename(folderPath),
-                    path: folderPath,
-                    isDirectory: true
-                });
-                this.fileTree.appendChild(rootItem);
-                rootItem.classList.add('expanded');
-                await this.expandDirectory(rootItem);
+                // Reset state for new folder
+                this.expandedDirs.clear();
+                this.lastOpenedFile = null;
+                await this.openDirectory(folderPath);
+                await this.saveState();
             }
         });
     }
@@ -118,9 +184,26 @@ class FileExplorer {
 
             const content = await window.fileSystem.readFile(filePath);
             this.editorContent.textContent = content;
+            
+            // Update last opened file and save state
+            this.lastOpenedFile = filePath;
+            await this.saveState();
         } catch (error) {
             console.error('Error loading file:', error);
         }
+    }
+
+    async openDirectory(dirPath) {
+        this.currentPath = dirPath;
+        this.fileTree.innerHTML = '';
+        const rootItem = this.createTreeItem({
+            name: window.path.basename(dirPath),
+            path: dirPath,
+            isDirectory: true
+        });
+        this.fileTree.appendChild(rootItem);
+        rootItem.classList.add('expanded');
+        await this.expandDirectory(rootItem);
     }
 
     addTreeEventListeners() {
@@ -135,8 +218,12 @@ class FileExplorer {
             if (isDirectory) {
                 treeItem.classList.toggle('expanded');
                 if (treeItem.classList.contains('expanded')) {
+                    this.expandedDirs.add(path);
                     await this.expandDirectory(treeItem);
+                } else {
+                    this.expandedDirs.delete(path);
                 }
+                await this.saveState();
             } else {
                 // Handle file click
                 await this.loadFile(path);

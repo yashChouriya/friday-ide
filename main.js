@@ -2,6 +2,20 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 
+let store;
+
+async function initializeStore() {
+    const Store = await import('electron-store');
+    store = new Store.default({
+        name: 'friday-ide-config',
+        defaults: {
+            lastOpenedFile: null,
+            expandedDirs: [],
+            lastOpenedDir: null
+        }
+    });
+}
+
 function createWindow() {
     // Create the browser window.
     const mainWindow = new BrowserWindow({
@@ -24,7 +38,10 @@ function createWindow() {
 }
 
 // This method will be called when Electron has finished initialization
-app.whenReady().then(createWindow);
+app.whenReady().then(async () => {
+    await initializeStore();
+    createWindow();
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -89,7 +106,76 @@ ipcMain.handle('select-folder', async () => {
     });
     
     if (!result.canceled) {
+        store.set('lastOpenedDir', result.filePaths[0]);
         return result.filePaths[0];
     }
     return null;
+});
+
+// Handle state saving
+ipcMain.handle('save-state', async (_, state = {}) => {
+    if (!state || typeof state !== 'object') {
+        console.warn('Invalid state object received');
+        return false;
+    }
+
+    try {
+        // Ensure store is initialized
+        if (!store) {
+            await initializeStore();
+        }
+
+        // Save each property individually
+        if (Array.isArray(state.expandedDirs)) {
+            store.set('expandedDirs', state.expandedDirs);
+        }
+        if (state.lastOpenedFile === null || typeof state.lastOpenedFile === 'string') {
+            store.set('lastOpenedFile', state.lastOpenedFile);
+        }
+        if (state.lastOpenedDir === null || typeof state.lastOpenedDir === 'string') {
+            store.set('lastOpenedDir', state.lastOpenedDir);
+        }
+        return true;
+    } catch (error) {
+        console.error('Error saving state:', error);
+        return false;
+    }
+});
+
+// Handle state loading
+ipcMain.handle('load-state', async () => {
+    try {
+        const defaultState = {
+            lastOpenedFile: null,
+            expandedDirs: [],
+            lastOpenedDir: null
+        };
+
+        // Ensure store is initialized
+        if (!store) {
+            await initializeStore();
+        }
+
+        return {
+            lastOpenedFile: store.get('lastOpenedFile', null),
+            expandedDirs: store.get('expandedDirs', []),
+            lastOpenedDir: store.get('lastOpenedDir', null)
+        };
+    } catch (error) {
+        console.error('Error loading state:', error);
+        return {
+            lastOpenedFile: null,
+            expandedDirs: [],
+            lastOpenedDir: null
+        };
+    }
+});
+
+// Error handling
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (error) => {
+    console.error('Unhandled Rejection:', error);
 });
