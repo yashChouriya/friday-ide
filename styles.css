@@ -211,7 +211,7 @@ body {
     width: 16px;
     margin-right: 4px;
     text-align: center;
-    color: #c8c8c8;
+    transition: filter 0.2s ease;
 }
 
 .tree-item .icon.fa-folder {

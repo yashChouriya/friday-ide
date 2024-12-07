@@ -203,7 +203,13 @@ class FileExplorer {
         }
         
         const iconSpan = document.createElement('i');
-        iconSpan.className = `icon ${item.isDirectory ? 'fas fa-folder' : 'fas fa-file'}`;
+        if (item.isDirectory) {
+            iconSpan.className = 'icon fas fa-folder';
+        } else {
+            const fileInfo = FileTypeHelper.getFileInfo(item.path);
+            iconSpan.className = `icon ${fileInfo.icon}`;
+            iconSpan.style.color = fileInfo.color;
+        }
         
         const nameSpan = document.createElement('span');
         nameSpan.className = 'name';
@@ -250,7 +256,9 @@ class FileExplorer {
         tab.dataset.path = filePath;
         
         const icon = document.createElement('i');
-        icon.className = 'tab-icon fas fa-file';
+        const fileInfo = FileTypeHelper.getFileInfo(filePath);
+        icon.className = `tab-icon ${fileInfo.icon}`;
+        icon.style.color = fileInfo.color;
         
         const title = document.createElement('span');
         title.className = 'tab-title';
@@ -383,25 +391,7 @@ class FileExplorer {
     }
 
     getLanguageFromPath(filePath) {
-        const extension = filePath.split('.').pop().toLowerCase();
-        const languageMap = {
-            'js': 'javascript',
-            'ts': 'typescript',
-            'py': 'python',
-            'html': 'html',
-            'css': 'css',
-            'json': 'json',
-            'md': 'markdown',
-            'xml': 'xml',
-            'yaml': 'yaml',
-            'yml': 'yaml',
-            'sh': 'shell',
-            'bash': 'shell',
-            'txt': 'plaintext',
-            'dockerfile': 'dockerfile'
-            // Add more mappings as needed
-        };
-        return languageMap[extension] || 'plaintext';
+        return FileTypeHelper.getLanguage(filePath);
     }
 
     async openDirectory(dirPath) {
