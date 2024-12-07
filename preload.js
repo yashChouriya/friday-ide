@@ -25,7 +25,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
         isDirectory: (path) => ipcRenderer.invoke('is-directory', path),
         selectFolder: () => ipcRenderer.invoke('select-folder'),
         saveState: (state) => ipcRenderer.invoke('save-state', state),
-        loadState: () => ipcRenderer.invoke('load-state')
+        loadState: () => ipcRenderer.invoke('load-state'),
+    saveFile: (filePath, content) => ipcRenderer.invoke('save-file', { filePath, content }),
+    showMessage: (options) => ipcRenderer.invoke('show-message', options)
     },
     // Monaco environment configuration
     monacoEnv: {

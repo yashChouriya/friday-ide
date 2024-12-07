@@ -21,6 +21,8 @@ class FileExplorer {
 
     async initializeMonaco() {
         return new Promise((resolve) => {
+            // Set up keyboard shortcuts
+            this.setupKeyboardShortcuts();
             // Monaco is already loaded by the time this code runs
             // Initialize Monaco Editor
             this.editor = monaco.editor.create(this.editorContainer, {
@@ -349,6 +351,68 @@ class FileExplorer {
         await this.saveState();
     }
 
+    setupKeyboardShortcuts() {
+        window.addEventListener('keydown', async (e) => {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                if (this.lastOpenedFile) {
+                    await this.saveFile(this.lastOpenedFile);
+                }
+            }
+        });
+    }
+
+    async saveFile(filePath) {
+        try {
+            const fileData = this.openedFiles.get(filePath);
+            if (fileData && fileData.isModified) {
+                const content = fileData.model.getValue();
+                await window.electronAPI.fileSystem.saveFile(filePath, content);
+                fileData.isModified = false;
+                fileData.originalContent = content;
+                this.updateTabState(filePath);
+            }
+        } catch (error) {
+            console.error('Error saving file:', error);
+        }
+    }
+
+    updateTabState(filePath) {
+        const tab = this.tabsContainer.querySelector(`[data-path="${filePath}"]`);
+        const fileData = this.openedFiles.get(filePath);
+        if (tab && fileData) {
+            if (fileData.isModified) {
+                tab.classList.add('modified');
+            } else {
+                tab.classList.remove('modified');
+            }
+        }
+    }
+
+    hasUnsavedChanges() {
+        for (const [_, fileData] of this.openedFiles) {
+            if (fileData.isModified) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    async saveAllModifiedFiles() {
+        const modifiedFiles = Array.from(this.openedFiles.entries())
+            .filter(([_, data]) => data.isModified);
+
+        for (const [filePath, _] of modifiedFiles) {
+            try {
+                await this.saveFile(filePath);
+            } catch (error) {
+                console.error(`Failed to save file: ${filePath}`, error);
+                return false;
+            }
+        }
+        return true;
+    }
+
     async loadFile(filePath, switchToFile = true) {
         try {
             // Check if file is already open
@@ -373,13 +437,27 @@ class FileExplorer {
             // Create new model
             const model = monaco.editor.createModel(content, language);
             
+            // Set up change tracking
+            model.onDidChangeContent(() => {
+                const fileData = this.openedFiles.get(filePath);
+                if (fileData && !fileData.isModified) {
+                    fileData.isModified = true;
+                    this.updateTabState(filePath);
+                }
+            });
+            
             // Create and add tab
             const fileName = window.electronAPI.path.basename(filePath);
             const tab = this.createTab(filePath, fileName);
             this.tabsContainer.appendChild(tab);
             
             // Store file data
-            this.openedFiles.set(filePath, { model, viewState: null });
+            this.openedFiles.set(filePath, { 
+                model, 
+                viewState: null, 
+                isModified: false,
+                originalContent: content 
+            });
             
             // Switch to this file if requested
             if (switchToFile) {
@@ -458,7 +536,7 @@ if (document.readyState === 'loading') {
 function initializeApp() {
     // Ensure monaco is available
     if (window.monaco) {
-        new FileExplorer();
+        window.fileExplorer = new FileExplorer();
     } else {
         console.error('Monaco editor not initialized');
     }

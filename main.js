@@ -38,11 +38,65 @@ function createWindow() {
     // Handle window close event
     mainWindow.on('close', async (e) => {
         e.preventDefault();
-        mainWindow.webContents.send('before-close');
-        // Give some time for state to be saved
-        setTimeout(() => {
-            app.exit(0);
-        }, 500);
+        const hasUnsavedChanges = await mainWindow.webContents.executeJavaScript(
+            'window.fileExplorer && window.fileExplorer.hasUnsavedChanges()'
+        );
+        
+        if (hasUnsavedChanges) {
+            const choice = dialog.showMessageBoxSync(mainWindow, {
+                type: 'question',
+                buttons: ['Save and Close', 'Close Without Saving', 'Cancel'],
+                title: 'Unsaved Changes',
+                message: 'You have unsaved changes. Would you like to save them before closing?',
+                defaultId: 0,
+                cancelId: 2
+            });
+
+            if (choice === 0) { // Save and Close
+                try {
+                    const saveResult = await mainWindow.webContents.executeJavaScript(`
+                        (async () => {
+                            try {
+                                // Show loading dialog
+                                const loadingDialog = await window.electronAPI.fileSystem.showMessage({
+                                    type: 'info',
+                                    title: 'Saving...',
+                                    message: 'Saving changes before closing...',
+                                    buttons: [],
+                                    noLink: true
+                                });
+                                
+                                // Save all modified files
+                                await window.fileExplorer.saveAllModifiedFiles();
+                                return true;
+                            } catch (error) {
+                                console.error('Error saving files:', error);
+                                return false;
+                            }
+                        })()
+                    `);
+
+                    if (saveResult) {
+                        app.exit(0);
+                    } else {
+                        dialog.showMessageBoxSync(mainWindow, {
+                            type: 'error',
+                            title: 'Save Failed',
+                            message: 'Failed to save some files. Please try again or close without saving.',
+                            buttons: ['OK']
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error in save process:', error);
+                }
+            } else if (choice === 1) { // Close Without Saving
+                app.exit(0);
+            }
+            // If choice === 2 (Cancel), do nothing and keep app open
+        } else {
+            mainWindow.webContents.send('before-close');
+            setTimeout(() => app.exit(0), 500);
+        }
     });
 }
 
@@ -131,6 +185,22 @@ ipcMain.handle('save-state', async (_, state = {}) => {
     } catch (error) {
         console.error('Error saving state:', error);
         return false;
+    }
+});
+
+// Handle showing messages
+ipcMain.handle('show-message', async (_, options) => {
+    return dialog.showMessageBox(BrowserWindow.getFocusedWindow(), options);
+});
+
+// Handle file saving
+ipcMain.handle('save-file', async (_, { filePath, content }) => {
+    try {
+        await fs.writeFile(filePath, content, 'utf-8');
+        return true;
+    } catch (error) {
+        console.error('Error saving file:', error);
+        throw error;
     }
 });
 
