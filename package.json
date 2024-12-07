@@ -5,15 +5,17 @@
   "scripts": {
     "start": "DISPLAY=:1 ELECTRON_DISABLE_SANDBOX=true electron .",
     "dev": "DISPLAY=:1 ELECTRON_DISABLE_SANDBOX=true nodemon --watch . --exec electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "rebuild": "electron-rebuild"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@electron/rebuild": "^3.7.1",
     "concurrently": "^9.1.0",
-    "electron": "^33.2.1",
+    "electron": "31.0.0",
     "electron-reload": "^2.0.0-alpha.1",
     "electron-store": "7.0.3",
     "nodemon": "^3.1.7",
@@ -23,6 +25,7 @@
     "@electron/remote": "^2.1.2",
     "@xterm/addon-web-links": "^0.11.0",
     "@xterm/xterm": "^5.5.0",
-    "monaco-editor": "^0.52.0"
+    "monaco-editor": "^0.52.0",
+    "node-pty": "^1.0.0"
   }
 }
