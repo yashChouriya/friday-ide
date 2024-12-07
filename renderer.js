@@ -48,6 +48,17 @@ class FileExplorer {
         // Create content wrapper
         const contentDiv = document.createElement('div');
         contentDiv.className = 'tree-item-content';
+
+        if (item.isDirectory) {
+            const angleIcon = document.createElement('i');
+            angleIcon.className = 'fas fa-angle-right arrow-icon';
+            contentDiv.appendChild(angleIcon);
+        } else {
+            // Add spacing for files to align with folders
+            const spacer = document.createElement('span');
+            spacer.className = 'arrow-spacer';
+            contentDiv.appendChild(spacer);
+        }
         
         const iconSpan = document.createElement('i');
         iconSpan.className = `icon ${item.isDirectory ? 'fas fa-folder' : 'fas fa-file'}`;
@@ -93,6 +104,18 @@ class FileExplorer {
 
     async loadFile(filePath) {
         try {
+            // Remove previous selection
+            const previousSelected = this.fileTree.querySelector('.tree-item-content.selected');
+            if (previousSelected) {
+                previousSelected.classList.remove('selected');
+            }
+
+            // Add selection to current file
+            const currentItem = this.fileTree.querySelector(`[data-path="${filePath}"]`);
+            if (currentItem) {
+                currentItem.querySelector('.tree-item-content').classList.add('selected');
+            }
+
             const content = await window.fileSystem.readFile(filePath);
             this.editorContent.textContent = content;
         } catch (error) {

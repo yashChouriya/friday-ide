@@ -28,6 +28,7 @@ body {
     flex: 1;
     overflow-y: auto; /* Add scrollbar to file tree */
     overflow-x: hidden;
+    padding: 4px 0;
 }
 
 /* Customize scrollbar for file tree */
@@ -119,6 +120,7 @@ body {
     padding: 0 8px;
     height: 22px;
     border-radius: 3px;
+    gap: 4px;
 }
 
 .tree-item-content:hover {
@@ -166,8 +168,37 @@ body {
     background-color: #383838;
 }
 
+.arrow-icon {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #888;
+    transition: transform 0.15s ease;
+}
+
+.arrow-spacer {
+    width: 16px;
+    display: inline-block;
+}
+
+.tree-item.directory.expanded > .tree-item-content .arrow-icon {
+    transform: rotate(90deg);
+}
+
 .tree-item.directory.expanded > .children {
     display: block;
+}
+
+.tree-item-content.selected {
+    background-color: #37373d;
+}
+
+.tree-item-content.selected .name,
+.tree-item-content.selected .icon {
+    color: #ffffff;
 }
 
 /* Add guides for each level */
