@@ -56,7 +56,86 @@ body {
     color: #fff;
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Prevent editor scroll bleeding */
+    overflow: hidden;
+}
+
+.editor-tabs {
+    height: 35px;
+    background-color: #252526;
+    border-bottom: 1px solid #333;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.editor-tabs::-webkit-scrollbar {
+    height: 0px;
+}
+
+.tabs-container {
+    display: flex;
+    height: 100%;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    background-color: #2d2d2d;
+    border-right: 1px solid #333;
+    min-width: 120px;
+    max-width: 200px;
+    height: 100%;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    gap: 5px;
+}
+
+.tab.active {
+    background-color: #1e1e1e;
+}
+
+.tab:hover:not(.active) {
+    background-color: #343434;
+}
+
+.tab-title {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13px;
+    color: #969696;
+}
+
+.tab.active .tab-title {
+    color: #ffffff;
+}
+
+.tab-close {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    font-size: 14px;
+    color: #969696;
+}
+
+.tab-close:hover {
+    background-color: #404040;
+    color: #ffffff;
+}
+
+.tab-icon {
+    font-size: 14px;
+    color: #969696;
+}
+
+.tab.active .tab-icon {
+    color: #ffffff;
 }
 
 .explorer-header {

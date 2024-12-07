@@ -3,9 +3,11 @@ class FileExplorer {
         this.currentPath = '';
         this.fileTree = document.getElementById('file-tree');
         this.editorContainer = document.getElementById('monaco-editor');
+        this.tabsContainer = document.querySelector('.tabs-container');
         this.expandedDirs = new Set();
         this.lastOpenedFile = null;
         this.editor = null;
+        this.openedFiles = new Map(); // Map<filePath, {model, viewState}>
         this.initialize();
     }
 
@@ -132,12 +134,11 @@ class FileExplorer {
                 this.expandedDirs.clear();
                 this.lastOpenedFile = null;
                 
-                // Clear editor content
-                const model = this.editor.getModel();
-                if (model) {
-                    model.setValue('');
-                    monaco.editor.setModelLanguage(model, 'plaintext');
-                }
+                // Clear all tabs and models
+                this.openedFiles.forEach(({model}) => model.dispose());
+                this.openedFiles.clear();
+                this.tabsContainer.innerHTML = '';
+                this.editor.setModel(null);
                 
                 // Remove any previous file selection
                 const previousSelected = this.fileTree.querySelector('.tree-item-content.selected');
@@ -223,38 +224,127 @@ class FileExplorer {
         }
     }
 
-    async loadFile(filePath) {
-        try {
-            // Remove previous selection
-            const previousSelected = this.fileTree.querySelector('.tree-item-content.selected');
-            if (previousSelected) {
-                previousSelected.classList.remove('selected');
+    createTab(filePath, fileName) {
+        const tab = document.createElement('div');
+        tab.className = 'tab';
+        tab.dataset.path = filePath;
+        
+        const icon = document.createElement('i');
+        icon.className = 'tab-icon fas fa-file';
+        
+        const title = document.createElement('span');
+        title.className = 'tab-title';
+        title.textContent = fileName;
+        
+        const closeBtn = document.createElement('div');
+        closeBtn.className = 'tab-close';
+        closeBtn.innerHTML = '&times;';
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.closeFile(filePath);
+        });
+        
+        tab.appendChild(icon);
+        tab.appendChild(title);
+        tab.appendChild(closeBtn);
+        
+        tab.addEventListener('click', () => this.switchToFile(filePath));
+        
+        return tab;
+    }
+
+    async closeFile(filePath) {
+        const fileData = this.openedFiles.get(filePath);
+        if (fileData) {
+            fileData.model.dispose();
+            this.openedFiles.delete(filePath);
+            
+            // Remove tab
+            const tab = this.tabsContainer.querySelector(`[data-path="${filePath}"]`);
+            if (tab) {
+                tab.remove();
             }
 
-            // Add selection to current file
-            const currentItem = this.fileTree.querySelector(`[data-path="${filePath}"]`);
-            if (currentItem) {
-                currentItem.querySelector('.tree-item-content').classList.add('selected');
+            // If this was the active file, switch to another file
+            if (this.lastOpenedFile === filePath) {
+                const remainingFiles = Array.from(this.openedFiles.keys());
+                if (remainingFiles.length > 0) {
+                    await this.switchToFile(remainingFiles[remainingFiles.length - 1]);
+                } else {
+                    this.lastOpenedFile = null;
+                    this.editor.setModel(null);
+                }
+            }
+        }
+        await this.saveState();
+    }
+
+    async switchToFile(filePath) {
+        if (!this.openedFiles.has(filePath)) {
+            await this.loadFile(filePath);
+            return;
+        }
+
+        // Save current file's view state
+        if (this.lastOpenedFile) {
+            const currentFileData = this.openedFiles.get(this.lastOpenedFile);
+            if (currentFileData) {
+                currentFileData.viewState = this.editor.saveViewState();
+            }
+        }
+
+        // Update active tab
+        const tabs = this.tabsContainer.querySelectorAll('.tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        const newTab = this.tabsContainer.querySelector(`[data-path="${filePath}"]`);
+        if (newTab) {
+            newTab.classList.add('active');
+        }
+
+        // Switch to new file
+        const fileData = this.openedFiles.get(filePath);
+        this.editor.setModel(fileData.model);
+        if (fileData.viewState) {
+            this.editor.restoreViewState(fileData.viewState);
+        }
+        this.editor.focus();
+
+        // Update tree selection
+        const treeItems = this.fileTree.querySelectorAll('.tree-item-content');
+        treeItems.forEach(item => item.classList.remove('selected'));
+        const treeItem = this.fileTree.querySelector(`[data-path="${filePath}"]`);
+        if (treeItem) {
+            treeItem.querySelector('.tree-item-content').classList.add('selected');
+        }
+
+        this.lastOpenedFile = filePath;
+        await this.saveState();
+    }
+
+    async loadFile(filePath) {
+        try {
+            // Check if file is already open
+            if (this.openedFiles.has(filePath)) {
+                await this.switchToFile(filePath);
+                return;
             }
 
             const content = await window.fileSystem.readFile(filePath);
-            
-            // Detect language based on file extension
             const language = this.getLanguageFromPath(filePath);
             
-            // Update editor model with new content and language
-            const model = this.editor.getModel();
-            if (model) {
-                monaco.editor.setModelLanguage(model, language);
-                model.setValue(content);
-            } else {
-                const newModel = monaco.editor.createModel(content, language);
-                this.editor.setModel(newModel);
-            }
+            // Create new model
+            const model = monaco.editor.createModel(content, language);
             
-            // Update last opened file and save state
-            this.lastOpenedFile = filePath;
-            await this.saveState();
+            // Create and add tab
+            const fileName = window.path.basename(filePath);
+            const tab = this.createTab(filePath, fileName);
+            this.tabsContainer.appendChild(tab);
+            
+            // Store file data
+            this.openedFiles.set(filePath, { model, viewState: null });
+            
+            // Switch to this file
+            await this.switchToFile(filePath);
         } catch (error) {
             console.error('Error loading file:', error);
         }
