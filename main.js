@@ -24,9 +24,8 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
-            enableRemoteModule: false,
-            preload: path.join(__dirname, 'preload.js'),
-            sandbox: false // Needed for our preload script
+            sandbox: false,
+            preload: path.join(__dirname, 'preload.js')
         }
     });
 
@@ -35,6 +34,16 @@ function createWindow() {
 
     // Open the DevTools in development mode
     mainWindow.webContents.openDevTools();
+
+    // Handle window close event
+    mainWindow.on('close', async (e) => {
+        e.preventDefault();
+        mainWindow.webContents.send('before-close');
+        // Give some time for state to be saved
+        setTimeout(() => {
+            app.exit(0);
+        }, 500);
+    });
 }
 
 // This method will be called when Electron has finished initialization
@@ -114,27 +123,10 @@ ipcMain.handle('select-folder', async () => {
 
 // Handle state saving
 ipcMain.handle('save-state', async (_, state = {}) => {
-    if (!state || typeof state !== 'object') {
-        console.warn('Invalid state object received');
-        return false;
-    }
-
     try {
-        // Ensure store is initialized
-        if (!store) {
-            await initializeStore();
-        }
-
-        // Save each property individually
-        if (Array.isArray(state.expandedDirs)) {
-            store.set('expandedDirs', state.expandedDirs);
-        }
-        if (state.lastOpenedFile === null || typeof state.lastOpenedFile === 'string') {
-            store.set('lastOpenedFile', state.lastOpenedFile);
-        }
-        if (state.lastOpenedDir === null || typeof state.lastOpenedDir === 'string') {
-            store.set('lastOpenedDir', state.lastOpenedDir);
-        }
+        // Direct save of entire state object
+        store.store = state;
+        console.log('State saved:', store.store);
         return true;
     } catch (error) {
         console.error('Error saving state:', error);
@@ -148,7 +140,8 @@ ipcMain.handle('load-state', async () => {
         const defaultState = {
             lastOpenedFile: null,
             expandedDirs: [],
-            lastOpenedDir: null
+            lastOpenedDir: null,
+            openedFiles: []
         };
 
         // Ensure store is initialized
@@ -159,15 +152,24 @@ ipcMain.handle('load-state', async () => {
         return {
             lastOpenedFile: store.get('lastOpenedFile', null),
             expandedDirs: store.get('expandedDirs', []),
-            lastOpenedDir: store.get('lastOpenedDir', null)
+            lastOpenedDir: store.get('lastOpenedDir', null),
+            openedFiles: store.get('openedFiles', [])
         };
     } catch (error) {
         console.error('Error loading state:', error);
-        return {
-            lastOpenedFile: null,
-            expandedDirs: [],
-            lastOpenedDir: null
-        };
+        return defaultState;
+    }
+});
+
+// Synchronous state saving
+ipcMain.on('save-state', (event) => {
+    try {
+        const currentState = store.store;
+        console.log('Saving state:', currentState);
+        event.returnValue = true;
+    } catch (error) {
+        console.error('Error in sync save:', error);
+        event.returnValue = false;
     }
 });
 

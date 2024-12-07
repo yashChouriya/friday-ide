@@ -20,6 +20,7 @@
     "wait-on": "^8.0.1"
   },
   "dependencies": {
+    "@electron/remote": "^2.1.2",
     "monaco-editor": "^0.52.0"
   }
 }

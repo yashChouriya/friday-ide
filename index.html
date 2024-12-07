@@ -26,24 +26,24 @@
     </div>
     <script src="node_modules/monaco-editor/min/vs/loader.js"></script>
     <script>
-        // Set up Monaco loading
-        const amdLoader = require;
-        const amdRequire = amdLoader;
-        // Preserve Electron's require
-        const electronRequire = window.require;
-        delete window.require;
+        // Configure path to monaco base
+        const monacoBase = window.electronAPI.monacoEnv.getBasePath();
         
-        amdRequire.config({
-            paths: { 'vs': 'node_modules/monaco-editor/min/vs' }
+        // Configure AMD loader for Monaco
+        require.config({
+            paths: { 'vs': monacoBase + '/vs' }
         });
 
-        // Load Monaco
-        amdRequire(['vs/editor/editor.main'], function() {
-            // Restore Electron's require
-            window.require = electronRequire;
-            // Make monaco global
+        // Configure Monaco's environment
+        self.MonacoEnvironment = {
+            getWorkerUrl: function(moduleId, label) {
+                return window.electronAPI.monacoEnv.getWorkerPath();
+            }
+        };
+
+        // Load Monaco and then our renderer
+        require(['vs/editor/editor.main'], function() {
             window.monaco = monaco;
-            // Load our renderer
             const script = document.createElement('script');
             script.src = './renderer.js';
             document.body.appendChild(script);

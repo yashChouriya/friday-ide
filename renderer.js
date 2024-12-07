@@ -59,19 +59,38 @@ class FileExplorer {
     }
 
     setupStateHandlers() {
-        // Save state when window is about to close
+        // Save state periodically (every 30 seconds)
+        setInterval(() => {
+            this.saveState();
+        }, 30000);
+
+        // Save state when switching files
+        this.editor.onDidChangeModel(() => {
+            this.saveState();
+        });
+
+        // Save state when closing
         window.addEventListener('beforeunload', () => {
             this.saveState();
         });
     }
 
+    MAX_OPEN_FILES = 10;
+
     async saveState() {
         try {
-            const state = {
-                expandedDirs: Array.from(this.expandedDirs),
-                lastOpenedFile: this.lastOpenedFile
-            };
-            await window.fileSystem.saveState(state);
+            // Only save if we have opened files
+            if (this.openedFiles.size > 0 && this.currentPath) {
+                const state = {
+                    lastOpenedDir: this.currentPath,
+                    lastOpenedFile: this.lastOpenedFile,
+                    openedFiles: Array.from(this.openedFiles.keys()),
+                    expandedDirs: Array.from(this.expandedDirs)
+                };
+                console.log('Saving state:', state);
+                const result = await window.electronAPI.fileSystem.saveState(state);
+                console.log('State saved:', result);
+            }
         } catch (error) {
             console.error('Error saving state:', error);
         }
@@ -79,56 +98,57 @@ class FileExplorer {
 
     async loadSavedState() {
         try {
-            const state = await window.fileSystem.loadState();
-            if (!state) return;
+            console.log('Starting state restoration...');
+            const state = await window.electronAPI.fileSystem.loadState();
+            console.log('Loaded state:', state);
 
-            // Initialize expanded directories set
-            this.expandedDirs = new Set(Array.isArray(state.expandedDirs) ? state.expandedDirs : []);
-            
-            // Check if last opened directory exists and is accessible
-            if (state.lastOpenedDir) {
-                try {
-                    const isDir = await window.fileSystem.isDirectory(state.lastOpenedDir);
-                    if (isDir) {
-                        await this.openDirectory(state.lastOpenedDir);
-                        
-                        // Restore expanded directories
-                        for (const dir of this.expandedDirs) {
-                            try {
-                                const dirElement = this.fileTree.querySelector(`[data-path="${dir}"]`);
-                                const exists = await window.fileSystem.isDirectory(dir);
-                                if (dirElement && exists) {
-                                    dirElement.classList.add('expanded');
-                                    await this.expandDirectory(dirElement);
-                                }
-                            } catch (error) {
-                                console.warn(`Failed to restore expanded state for directory: ${dir}`, error);
-                            }
-                        }
-                        
-                        // Restore last opened file if it exists
-                        if (state.lastOpenedFile) {
-                            try {
-                                await window.fileSystem.readFile(state.lastOpenedFile);
-                                await this.loadFile(state.lastOpenedFile);
-                            } catch (error) {
-                                console.warn('Failed to restore last opened file:', error);
-                            }
-                        }
+            if (!state || !state.lastOpenedDir) {
+                console.log('No state to restore');
+                return;
+            }
+
+            // First open the directory
+            await this.openDirectory(state.lastOpenedDir);
+            console.log('Directory opened:', state.lastOpenedDir);
+
+            // Then restore opened files
+            if (Array.isArray(state.openedFiles)) {
+                console.log('Restoring files:', state.openedFiles);
+                for (const filePath of state.openedFiles.slice(0, this.MAX_OPEN_FILES)) {
+                    try {
+                        await this.loadFile(filePath, false); // Don't switch to file yet
+                    } catch (error) {
+                        console.warn(`Couldn't restore file: ${filePath}`, error);
                     }
-                } catch (error) {
-                    console.warn('Last opened directory is no longer accessible:', error);
+                }
+            }
+
+            // Finally switch to last opened file
+            if (state.lastOpenedFile) {
+                console.log('Switching to last file:', state.lastOpenedFile);
+                await this.switchToFile(state.lastOpenedFile);
+            }
+
+            // Restore expanded state after files are loaded
+            if (Array.isArray(state.expandedDirs)) {
+                this.expandedDirs = new Set(state.expandedDirs);
+                for (const dir of state.expandedDirs) {
+                    const dirElement = this.fileTree.querySelector(`[data-path="${dir}"]`);
+                    if (dirElement) {
+                        dirElement.classList.add('expanded');
+                        await this.expandDirectory(dirElement);
+                    }
                 }
             }
         } catch (error) {
-            console.error('Error loading saved state:', error);
+            console.error('Failed to restore state:', error);
         }
     }
 
     setupOpenFolderButton() {
         const openFolderBtn = document.getElementById('open-folder');
         openFolderBtn.addEventListener('click', async () => {
-            const folderPath = await window.fileSystem.selectFolder();
+            const folderPath = await window.electronAPI.fileSystem.selectFolder();
             if (folderPath) {
                 // Reset state for new folder
                 this.expandedDirs.clear();
@@ -154,7 +174,7 @@ class FileExplorer {
 
     async loadDirectory(dirPath) {
         try {
-            const items = await window.fileSystem.readDirectory(dirPath);
+            const items = await window.electronAPI.fileSystem.readDirectory(dirPath);
             return items;
         } catch (error) {
             console.error('Error loading directory:', error);
@@ -321,30 +341,42 @@ class FileExplorer {
         await this.saveState();
     }
 
-    async loadFile(filePath) {
+    async loadFile(filePath, switchToFile = true) {
         try {
             // Check if file is already open
             if (this.openedFiles.has(filePath)) {
-                await this.switchToFile(filePath);
+                if (switchToFile) {
+                    await this.switchToFile(filePath);
+                }
                 return;
             }
 
-            const content = await window.fileSystem.readFile(filePath);
+            // Check if we've reached the file limit
+            if (this.openedFiles.size >= this.MAX_OPEN_FILES) {
+                // Find the oldest file that isn't the current file and close it
+                const filesArray = Array.from(this.openedFiles.keys());
+                const oldestFile = filesArray[0];
+                await this.closeFile(oldestFile);
+            }
+
+            const content = await window.electronAPI.fileSystem.readFile(filePath);
             const language = this.getLanguageFromPath(filePath);
             
             // Create new model
             const model = monaco.editor.createModel(content, language);
             
             // Create and add tab
-            const fileName = window.path.basename(filePath);
+            const fileName = window.electronAPI.path.basename(filePath);
             const tab = this.createTab(filePath, fileName);
             this.tabsContainer.appendChild(tab);
             
             // Store file data
             this.openedFiles.set(filePath, { model, viewState: null });
             
-            // Switch to this file
-            await this.switchToFile(filePath);
+            // Switch to this file if requested
+            if (switchToFile) {
+                await this.switchToFile(filePath);
+            }
         } catch (error) {
             console.error('Error loading file:', error);
         }
@@ -373,16 +405,31 @@ class FileExplorer {
     }
 
     async openDirectory(dirPath) {
-        this.currentPath = dirPath;
-        this.fileTree.innerHTML = '';
-        const rootItem = this.createTreeItem({
-            name: window.path.basename(dirPath),
-            path: dirPath,
-            isDirectory: true
-        });
-        this.fileTree.appendChild(rootItem);
-        rootItem.classList.add('expanded');
-        await this.expandDirectory(rootItem);
+        try {
+            if (!dirPath) return;
+            
+            this.currentPath = dirPath;
+            this.fileTree.innerHTML = '';
+            
+            // Check if directory exists and is readable
+            const isDir = await window.electronAPI.fileSystem.isDirectory(dirPath);
+            if (!isDir) {
+                console.error('Not a valid directory:', dirPath);
+                return;
+            }
+
+            const rootItem = this.createTreeItem({
+                name: window.electronAPI.path.basename(dirPath),
+                path: dirPath,
+                isDirectory: true
+            });
+            
+            this.fileTree.appendChild(rootItem);
+            rootItem.classList.add('expanded');
+            await this.expandDirectory(rootItem);
+        } catch (error) {
+            console.error('Error opening directory:', error);
+        }
     }
 
     addTreeEventListeners() {

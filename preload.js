@@ -1,17 +1,35 @@
 const { contextBridge, ipcRenderer } = require('electron');
 const path = require('path');
 
-// Expose file system operations to renderer process
-contextBridge.exposeInMainWorld('path', {
-    basename: path.basename,
-    dirname: path.dirname,
-    join: path.join
+// Listen for window close event
+ipcRenderer.on('before-close', () => {
+    // Synchronously save state
+    ipcRenderer.sendSync('save-state');
 });
-contextBridge.exposeInMainWorld('fileSystem', {
-    readDirectory: (path) => ipcRenderer.invoke('read-directory', path),
-    readFile: (path) => ipcRenderer.invoke('read-file', path),
-    isDirectory: (path) => ipcRenderer.invoke('is-directory', path),
-    selectFolder: () => ipcRenderer.invoke('select-folder'),
-    saveState: (state) => ipcRenderer.invoke('save-state', state),
-    loadState: () => ipcRenderer.invoke('load-state')
+
+// Configure Monaco's base path
+const appPath = __dirname;
+const monacoPath = path.join(appPath, 'node_modules/monaco-editor/min/vs');
+
+// Expose necessary APIs to renderer process
+contextBridge.exposeInMainWorld('electronAPI', {
+    // File system operations
+    path: {
+        basename: path.basename,
+        dirname: path.dirname,
+        join: path.join
+    },
+    fileSystem: {
+        readDirectory: (path) => ipcRenderer.invoke('read-directory', path),
+        readFile: (path) => ipcRenderer.invoke('read-file', path),
+        isDirectory: (path) => ipcRenderer.invoke('is-directory', path),
+        selectFolder: () => ipcRenderer.invoke('select-folder'),
+        saveState: (state) => ipcRenderer.invoke('save-state', state),
+        loadState: () => ipcRenderer.invoke('load-state')
+    },
+    // Monaco environment configuration
+    monacoEnv: {
+        getBasePath: () => 'node_modules/monaco-editor/min',
+        getWorkerPath: () => './node_modules/monaco-editor/min/vs/base/worker/workerMain.js'
+    }
 });
