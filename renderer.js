@@ -45,9 +45,8 @@ class FileExplorer {
         itemDiv.className = 'tree-item';
         itemDiv.dataset.path = item.path;
         
-        const iconSpan = document.createElement('span');
-        iconSpan.className = `icon ${item.isDirectory ? 'folder' : 'file'}`;
-        iconSpan.innerHTML = item.isDirectory ? '📁' : '📄';
+        const iconSpan = document.createElement('i');
+        iconSpan.className = `icon ${item.isDirectory ? 'fas fa-folder' : 'fas fa-file'}`;
         
         const nameSpan = document.createElement('span');
         nameSpan.className = 'name';

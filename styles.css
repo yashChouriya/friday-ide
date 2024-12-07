@@ -79,6 +79,19 @@ body {
     font-size: 14px;
     width: 16px;
     text-align: center;
+    color: #c8c8c8;
+}
+
+.tree-item .icon.fa-folder {
+    color: #dcb67a;
+}
+
+.tree-item.expanded .icon.fa-folder:before {
+    content: "\f07c";  /* Font Awesome folder-open icon */
+}
+
+.tree-item:hover .icon {
+    color: #fff;
 }
 
 .tree-item .name {
@@ -87,7 +100,9 @@ body {
 
 .tree-item.directory > .children {
     display: none;
-    padding-left: 20px;
+    padding-left: 12px;
+    margin-left: 4px;
+    border-left: 1px solid #383838;
 }
 
 .tree-item.directory.expanded > .children {
