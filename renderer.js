@@ -537,6 +537,7 @@ function initializeApp() {
     // Ensure monaco is available
     if (window.monaco) {
         window.fileExplorer = new FileExplorer();
+        window.terminalManager = new TerminalManager();
     } else {
         console.error('Monaco editor not initialized');
     }

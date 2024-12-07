@@ -3,8 +3,15 @@
   <head>
     <title>Friday IDE</title>
     <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
     <script src="fileTypeHelper.js"></script>
+    <script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
+    <script src="node_modules/@xterm/addon-web-links"></script>
+    <script src="terminal.js"></script>
   </head>
   <body>
     <div class="container">
@@ -20,32 +27,36 @@
           <div class="tabs-container"></div>
         </div>
         <div id="monaco-editor"></div>
+        <div id="terminal" class="hidden"></div>
+        <button id="toggle-terminal" class="toggle-terminal">
+          <i class="fas fa-terminal"></i>
+        </button>
       </div>
     </div>
     <script src="node_modules/monaco-editor/min/vs/loader.js"></script>
     <script>
-        // Configure path to monaco base
-        const monacoBase = window.electronAPI.monacoEnv.getBasePath();
-        
-        // Configure AMD loader for Monaco
-        require.config({
-            paths: { 'vs': monacoBase + '/vs' }
-        });
+      // Configure path to monaco base
+      const monacoBase = window.electronAPI.monacoEnv.getBasePath();
 
-        // Configure Monaco's environment
-        self.MonacoEnvironment = {
-            getWorkerUrl: function(moduleId, label) {
-                return window.electronAPI.monacoEnv.getWorkerPath();
-            }
-        };
+      // Configure AMD loader for Monaco
+      require.config({
+        paths: { vs: monacoBase + "/vs" },
+      });
 
-        // Load Monaco and then our renderer
-        require(['vs/editor/editor.main'], function() {
-            window.monaco = monaco;
-            const script = document.createElement('script');
-            script.src = './renderer.js';
-            document.body.appendChild(script);
-        });
+      // Configure Monaco's environment
+      self.MonacoEnvironment = {
+        getWorkerUrl: function (moduleId, label) {
+          return window.electronAPI.monacoEnv.getWorkerPath();
+        },
+      };
+
+      // Load Monaco and then our renderer
+      require(["vs/editor/editor.main"], function () {
+        window.monaco = monaco;
+        const script = document.createElement("script");
+        script.src = "./renderer.js";
+        document.body.appendChild(script);
+      });
     </script>
   </body>
 </html>
