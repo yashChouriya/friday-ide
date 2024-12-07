@@ -90,6 +90,16 @@ class FileExplorer {
                 // Reset state for new folder
                 this.expandedDirs.clear();
                 this.lastOpenedFile = null;
+                
+                // Clear editor content
+                this.editorContent.textContent = '';
+                
+                // Remove any previous file selection
+                const previousSelected = this.fileTree.querySelector('.tree-item-content.selected');
+                if (previousSelected) {
+                    previousSelected.classList.remove('selected');
+                }
+                
                 await this.openDirectory(folderPath);
                 await this.saveState();
             }
