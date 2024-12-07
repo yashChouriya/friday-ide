@@ -2,17 +2,58 @@ class FileExplorer {
     constructor() {
         this.currentPath = '';
         this.fileTree = document.getElementById('file-tree');
-        this.editorContent = document.getElementById('editor-content');
+        this.editorContainer = document.getElementById('monaco-editor');
         this.expandedDirs = new Set();
         this.lastOpenedFile = null;
+        this.editor = null;
         this.initialize();
     }
 
     async initialize() {
+        await this.initializeMonaco();
         this.addTreeEventListeners();
         this.setupOpenFolderButton();
         await this.loadSavedState();
         this.setupStateHandlers();
+    }
+
+    async initializeMonaco() {
+        return new Promise((resolve) => {
+            // Monaco is already loaded by the time this code runs
+            // Initialize Monaco Editor
+            this.editor = monaco.editor.create(this.editorContainer, {
+                value: '', // Empty initial content
+                language: 'plaintext',
+                theme: 'vs-dark',
+                automaticLayout: true,
+                minimap: {
+                    enabled: true
+                },
+                scrollBeyondLastLine: false,
+                renderWhitespace: 'selection',
+                fontFamily: "'Fira Code', 'Consolas', 'Monaco', monospace",
+                fontSize: 14,
+                lineNumbers: 'on',
+                roundedSelection: false,
+                scrollbar: {
+                    useShadows: true,
+                    verticalHasArrows: false,
+                    horizontalHasArrows: false,
+                    vertical: 'visible',
+                    horizontal: 'visible',
+                    verticalScrollbarSize: 10,
+                    horizontalScrollbarSize: 10,
+                    arrowSize: 30
+                }
+            });
+
+            // Add window resize handler
+            window.addEventListener('resize', () => {
+                this.editor.layout();
+            });
+
+            resolve();
+        });
     }
 
     setupStateHandlers() {
@@ -92,7 +133,11 @@ class FileExplorer {
                 this.lastOpenedFile = null;
                 
                 // Clear editor content
-                this.editorContent.textContent = '';
+                const model = this.editor.getModel();
+                if (model) {
+                    model.setValue('');
+                    monaco.editor.setModelLanguage(model, 'plaintext');
+                }
                 
                 // Remove any previous file selection
                 const previousSelected = this.fileTree.querySelector('.tree-item-content.selected');
@@ -193,7 +238,19 @@ class FileExplorer {
             }
 
             const content = await window.fileSystem.readFile(filePath);
-            this.editorContent.textContent = content;
+            
+            // Detect language based on file extension
+            const language = this.getLanguageFromPath(filePath);
+            
+            // Update editor model with new content and language
+            const model = this.editor.getModel();
+            if (model) {
+                monaco.editor.setModelLanguage(model, language);
+                model.setValue(content);
+            } else {
+                const newModel = monaco.editor.createModel(content, language);
+                this.editor.setModel(newModel);
+            }
             
             // Update last opened file and save state
             this.lastOpenedFile = filePath;
@@ -201,6 +258,28 @@ class FileExplorer {
         } catch (error) {
             console.error('Error loading file:', error);
         }
+    }
+
+    getLanguageFromPath(filePath) {
+        const extension = filePath.split('.').pop().toLowerCase();
+        const languageMap = {
+            'js': 'javascript',
+            'ts': 'typescript',
+            'py': 'python',
+            'html': 'html',
+            'css': 'css',
+            'json': 'json',
+            'md': 'markdown',
+            'xml': 'xml',
+            'yaml': 'yaml',
+            'yml': 'yaml',
+            'sh': 'shell',
+            'bash': 'shell',
+            'txt': 'plaintext',
+            'dockerfile': 'dockerfile'
+            // Add more mappings as needed
+        };
+        return languageMap[extension] || 'plaintext';
     }
 
     async openDirectory(dirPath) {
@@ -242,7 +321,18 @@ class FileExplorer {
     }
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    const explorer = new FileExplorer();
-});
+// Initialize when DOM and Monaco are loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    initializeApp();
+}
+
+function initializeApp() {
+    // Ensure monaco is available
+    if (window.monaco) {
+        new FileExplorer();
+    } else {
+        console.error('Monaco editor not initialized');
+    }
+}

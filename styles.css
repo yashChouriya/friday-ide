@@ -212,36 +212,9 @@ body {
     background-color: #383838;
 }
 
-#editor-content {
+#monaco-editor {
     flex: 1;
     background-color: #1e1e1e;
-    padding: 16px;
-    font-family: 'Consolas', 'Monaco', monospace;
-    white-space: pre;
-    overflow-y: auto;
-    overflow-x: auto;
-}
-
-/* Customize scrollbar for editor content */
-#editor-content::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-}
-
-#editor-content::-webkit-scrollbar-track {
-    background: #1e1e1e;
-}
-
-#editor-content::-webkit-scrollbar-thumb {
-    background: #424242;
-    border-radius: 5px;
-    border: 2px solid #1e1e1e;
-}
-
-#editor-content::-webkit-scrollbar-thumb:hover {
-    background: #4f4f4f;
-}
-
-#editor-content::-webkit-scrollbar-corner {
-    background: #1e1e1e;
+    overflow: hidden;
+    position: relative;
 }

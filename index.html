@@ -1,25 +1,51 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Friday IDE</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-</head>
-<body>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  </head>
+  <body>
     <div class="container">
-        <div class="file-explorer">
-            <div class="explorer-header">
-                <h3>File Explorer</h3>
-                <button id="open-folder">Open Folder</button>
-            </div>
-            <div id="file-tree"></div>
+      <div class="file-explorer">
+        <div class="explorer-header">
+          <h3>File Explorer</h3>
+          <button id="open-folder">Open Folder</button>
         </div>
-        <div class="editor">
-            <!-- Text editor will go here -->
-            <h3>Editor</h3>
-            <div id="editor-content"></div>
-        </div>
+        <div id="file-tree"></div>
+      </div>
+      <div class="editor">
+        <h3>Editor</h3>
+        <div id="monaco-editor"></div>
+      </div>
     </div>
-    <script src="renderer.js"></script>
-</body>
+    <script src="node_modules/monaco-editor/min/vs/loader.js"></script>
+    <script>
+        // Set up Monaco loading
+        const amdLoader = require;
+        const amdRequire = amdLoader;
+        // Preserve Electron's require
+        const electronRequire = window.require;
+        delete window.require;
+        
+        amdRequire.config({
+            paths: { 'vs': 'node_modules/monaco-editor/min/vs' }
+        });
+
+        // Load Monaco
+        amdRequire(['vs/editor/editor.main'], function() {
+            // Restore Electron's require
+            window.require = electronRequire;
+            // Make monaco global
+            window.monaco = monaco;
+            // Load our renderer
+            const script = document.createElement('script');
+            script.src = './renderer.js';
+            document.body.appendChild(script);
+        });
+    </script>
+  </body>
 </html>
