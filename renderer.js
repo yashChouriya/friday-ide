@@ -45,6 +45,10 @@ class FileExplorer {
         itemDiv.className = 'tree-item';
         itemDiv.dataset.path = item.path;
         
+        // Create content wrapper
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'tree-item-content';
+        
         const iconSpan = document.createElement('i');
         iconSpan.className = `icon ${item.isDirectory ? 'fas fa-folder' : 'fas fa-file'}`;
         
@@ -52,8 +56,9 @@ class FileExplorer {
         nameSpan.className = 'name';
         nameSpan.textContent = item.name;
         
-        itemDiv.appendChild(iconSpan);
-        itemDiv.appendChild(nameSpan);
+        contentDiv.appendChild(iconSpan);
+        contentDiv.appendChild(nameSpan);
+        itemDiv.appendChild(contentDiv);
         
         if (item.isDirectory) {
             itemDiv.classList.add('directory');
@@ -97,9 +102,10 @@ class FileExplorer {
 
     addTreeEventListeners() {
         this.fileTree.addEventListener('click', async (e) => {
-            const treeItem = e.target.closest('.tree-item');
-            if (!treeItem) return;
+            const treeItemContent = e.target.closest('.tree-item-content');
+            if (!treeItemContent) return;
 
+            const treeItem = treeItemContent.parentElement;
             const path = treeItem.dataset.path;
             const isDirectory = treeItem.classList.contains('directory');
 
