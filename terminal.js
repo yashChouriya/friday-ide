@@ -5,6 +5,9 @@ class TerminalManager {
     this.terminalId = null;
     this.removeDataListener = null;
     this.isInitialized = false;
+    this.isResizing = false;
+    this.startY = 0;
+    this.startHeight = 0;
 
     // Get DOM elements
     this.terminalElement = document.getElementById("terminal");
@@ -14,10 +17,34 @@ class TerminalManager {
     this.handleInput = this.handleInput.bind(this);
     this.handleResize = this.handleResize.bind(this);
     this.handleOutput = this.handleOutput.bind(this);
+    this.startResizing = this.startResizing.bind(this);
+    this.stopResizing = this.stopResizing.bind(this);
+    this.resize = this.resize.bind(this);
+    this.updateTerminalSize = this.updateTerminalSize.bind(this);
 
-    // Set up event listener for toggle button
+    // Set up event listeners
     if (this.toggleButton) {
       this.toggleButton.addEventListener("click", () => this.toggleTerminal());
+    }
+    if (this.terminalElement) {
+      // Add resize event listeners
+      this.terminalElement.addEventListener('mousedown', (e) => {
+        // Only start resize if clicking the top border area
+        if (e.offsetY <= 4) {
+          this.startResizing(e);
+        }
+      });
+      
+      window.addEventListener('mousemove', this.resize);
+      window.addEventListener('mouseup', this.stopResizing);
+
+      // Add mutation observer to handle terminal container resizing
+      const resizeObserver = new ResizeObserver(() => {
+        if (this.terminal) {
+          this.updateTerminalSize();
+        }
+      });
+      resizeObserver.observe(this.terminalElement);
     }
   }
 
@@ -148,10 +175,99 @@ class TerminalManager {
     }
   }
 
+  startResizing(e) {
+    if (!this.terminalElement) return;
+    
+    this.isResizing = true;
+    this.startY = e.clientY;
+    this.startHeight = this.terminalElement.offsetHeight;
+    
+    // Add temporary overlay to prevent text selection during resize
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.right = '0';
+    overlay.style.bottom = '0';
+    overlay.style.cursor = 'row-resize';
+    overlay.style.zIndex = '9999';
+    overlay.id = 'resize-overlay';
+    document.body.appendChild(overlay);
+  }
+
+  resize(e) {
+    if (!this.isResizing) return;
+
+    const delta = this.startY - e.clientY;
+    const newHeight = Math.max(100, Math.min(window.innerHeight * 0.8, this.startHeight + delta));
+    this.terminalElement.style.height = `${newHeight}px`;
+    this.updateTerminalSize();
+  }
+
+  stopResizing() {
+    if (!this.isResizing) return;
+    
+    this.isResizing = false;
+    // Remove the overlay
+    const overlay = document.getElementById('resize-overlay');
+    if (overlay) {
+      overlay.remove();
+    }
+  }
+
+  updateTerminalSize() {
+    if (!this.terminal || !this.terminalElement) return;
+
+    try {
+      // Get the dimensions of the container
+      const terminalElementStyle = window.getComputedStyle(this.terminalElement);
+      const padding = {
+        left: parseInt(terminalElementStyle.paddingLeft) || 0,
+        right: parseInt(terminalElementStyle.paddingRight) || 0,
+        top: parseInt(terminalElementStyle.paddingTop) || 0,
+        bottom: parseInt(terminalElementStyle.paddingBottom) || 0
+      };
+
+      // Calculate available space
+      const availableWidth = Math.max(0, this.terminalElement.clientWidth - padding.left - padding.right);
+      const availableHeight = Math.max(0, this.terminalElement.clientHeight - padding.top - padding.bottom);
+
+      // Get the size of a single character
+      const dimensions = this.terminal._core._renderService.dimensions;
+      const charMeasure = dimensions?.actualCellWidth || 9; // fallback to 9 pixels if undefined
+      const lineMeasure = dimensions?.actualCellHeight || 17; // fallback to 17 pixels if undefined
+
+      // Calculate cols and rows, ensure minimum values
+      const cols = Math.max(2, Math.floor(availableWidth / charMeasure));
+      const rows = Math.max(1, Math.floor(availableHeight / lineMeasure));
+
+      // Update terminal size if it has changed and values are valid
+      if (cols > 0 && rows > 0 && 
+          (cols !== this.terminal.cols || rows !== this.terminal.rows)) {
+        // Ensure integer values
+        const finalCols = Math.floor(cols);
+        const finalRows = Math.floor(rows);
+        
+        this.terminal.resize(finalCols, finalRows);
+        if (this.terminalId) {
+          window.electronAPI.terminal.resize(this.terminalId, finalCols, finalRows);
+        }
+      }
+    } catch (error) {
+      console.warn('Terminal resize calculation error:', error);
+    }
+  }
+
   async destroy() {
     try {
       // Clean up terminal process
       await this.destroyProcess();
+
+      // Remove event listeners
+      if (this.terminalElement) {
+        window.removeEventListener('mousemove', this.resize);
+        window.removeEventListener('mouseup', this.stopResizing);
+      }
 
       // Clean up terminal UI
       if (this.terminal) {
