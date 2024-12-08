@@ -94,7 +94,7 @@ The IDE supports a wide range of file types, including but not limited to:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/friday-ide.git
+git clone [https://github.com/yourusername/friday-ide.git](https://github.com/yashChouriya/friday-ide.git)
 cd friday-ide
 ```
 
