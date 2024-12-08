@@ -1,3 +1,7 @@
+// Make FileExplorer and TerminalManager instances available globally
+window.fileExplorer = null;
+window.terminalManager = null;
+
 class FileExplorer {
     constructor() {
         this.currentPath = '';
@@ -169,6 +173,13 @@ class FileExplorer {
                 }
                 
                 await this.openDirectory(folderPath);
+                
+                // Create new terminal in the new directory if terminal is visible
+                const terminalElement = document.getElementById('terminal');
+                if (terminalElement && !terminalElement.classList.contains('hidden') && window.terminalManager) {
+                    await window.terminalManager.createTerminal();
+                }
+                
                 await this.saveState();
             }
         });

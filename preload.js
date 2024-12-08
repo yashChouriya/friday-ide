@@ -17,7 +17,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     path: {
         basename: path.basename,
         dirname: path.dirname,
-        join: path.join
+        join: path.join,
+        getHomeDir: () => ipcRenderer.invoke('get-home-dir')
     },
     fileSystem: {
         readDirectory: (path) => ipcRenderer.invoke('read-directory', path),
@@ -36,7 +37,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
     // Terminal operations
     terminal: {
-        create: () => ipcRenderer.invoke('terminal-create'),
+        create: (cwd) => ipcRenderer.invoke('terminal-create', { cwd }),
         resize: (id, cols, rows) => ipcRenderer.invoke('terminal-resize', { id, cols, rows }),
         write: (id, data) => ipcRenderer.invoke('terminal-write', { id, data }),
         destroy: (id) => ipcRenderer.invoke('terminal-destroy', { id }),

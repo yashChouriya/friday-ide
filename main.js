@@ -9,12 +9,12 @@ var shell = os.platform() === "win32" ? "powershell.exe" : "bash";
 const terminals = new Map();
 
 // Create a new terminal instance
-function createTerminal(id) {
+function createTerminal(id, cwd = process.env.HOME) {
   const term = pty.spawn(shell, [], {
     name: 'xterm-256color',
     cols: 80,
     rows: 24,
-    cwd: process.env.HOME,
+    cwd: cwd,
     env: process.env
   });
 
@@ -228,6 +228,11 @@ ipcMain.handle("save-file", async (_, { filePath, content }) => {
   }
 });
 
+// Handle getting home directory
+ipcMain.handle("get-home-dir", () => {
+  return os.homedir();
+});
+
 // Handle state loading
 ipcMain.handle("load-state", async () => {
   try {
@@ -268,9 +273,9 @@ ipcMain.on("save-state", (event) => {
 });
 
 // Terminal IPC Handlers
-ipcMain.handle('terminal-create', (event) => {
+ipcMain.handle('terminal-create', (event, { cwd }) => {
   const id = Date.now().toString();
-  const term = createTerminal(id);
+  const term = createTerminal(id, cwd);
   
   // Handle terminal output
   term.onData((data) => {
