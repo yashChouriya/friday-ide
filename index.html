@@ -11,6 +11,9 @@
     <script src="fileTypeHelper.js"></script>
     <script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
     <script src="node_modules/@xterm/addon-web-links/lib/addon-web-links.js"></script>
+    <script src="node_modules/@xterm/addon-search/lib/addon-search.js"></script>
+    <script src="node_modules/@xterm/addon-clipboard/lib/addon-clipboard.js"></script>
+    
     <script src="terminal.js"></script>
   </head>
   <body>
@@ -121,13 +124,6 @@
     <script>
       // Configure path to monaco base
       const monacoBase = window.electronAPI.monacoEnv.getBasePath();
-
-      try {
-      const addon = new WebLinksAddon.WebLinksAddon()
-        console.log(addon)
-      } catch (error) {
-        console.log("FAILED TO LOAD ADDON FROM HTML FILE")
-      }
 
       // Configure AMD loader for Monaco
       require.config({

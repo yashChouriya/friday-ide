@@ -103,7 +103,23 @@ class TerminalManager {
           this.terminal.loadAddon(webLinksAddon);
           console.log('Web links addon loaded successfully');
         } catch (error) {
-          console.warn('Failed to load web links addon:', error);
+          console.error('Failed to load web links addon:', error);
+        }
+
+        try {
+          const searchAddon = new window.SearchAddon.SearchAddon();
+          this.terminal.loadAddon(searchAddon);
+          console.log('searchAddon addon loaded successfully');
+        } catch (error) {
+          console.error('Failed to load searchAddon addon:', error);
+        }
+
+        try {
+          const clipboardAddon = new window.ClipboardAddon.ClipboardAddon();
+          this.terminal.loadAddon(clipboardAddon);
+          console.log('clipboardAddon addon loaded successfully');
+        } catch (error) {
+          console.error('Failed to load clipboardAddon addon:', error);
         }
       }
 

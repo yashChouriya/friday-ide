@@ -14,6 +14,8 @@
   "description": "",
   "devDependencies": {
     "@electron/rebuild": "^3.7.1",
+    "@xterm/addon-clipboard": "^0.1.0",
+    "@xterm/addon-search": "^0.15.0",
     "concurrently": "^9.1.0",
     "electron": "31.0.0",
     "electron-reload": "^2.0.0-alpha.1",
