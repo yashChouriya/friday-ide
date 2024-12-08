@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, shell } = require('electron');
 const path = require('path');
 
 // Listen for window close event
@@ -59,6 +59,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
             const subscription = (event, data) => callback(data);
             ipcRenderer.on('terminal-data', subscription);
             return () => ipcRenderer.removeListener('terminal-data', subscription);
+        }
+    },
+    // Shell operations for opening external links
+    shell: {
+        openExternal: async (url) => {
+            try {
+                // Basic URL validation
+                const urlObj = new URL(url);
+                if (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') {
+                    await shell.openExternal(url);
+                } else {
+                    console.warn('Blocked attempt to open non-http(s) URL:', url);
+                }
+            } catch (error) {
+                console.error('Failed to open URL:', error);
+            }
         }
     }
 });
