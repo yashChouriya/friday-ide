@@ -59,10 +59,8 @@ class SettingsManager {
             // Save theme preference first
             await window.electronAPI.store.set('theme', theme);
             
-            // Update Monaco Editor theme if it's available
-            if (typeof monaco !== 'undefined' && monaco.editor) {
-                monaco.editor.setTheme(theme);
-            }
+            // Apply the theme
+            await this.applyTheme(theme);
             
             // Update UI elements
             this.updateUITheme(theme);
@@ -81,21 +79,11 @@ class SettingsManager {
             // Update dropdown
             this.themeSelect.value = savedTheme;
             
-            // Apply theme to Monaco editor if it's available
-            if (typeof monaco !== 'undefined' && monaco.editor) {
-                monaco.editor.setTheme(savedTheme);
-            } else {
-                // If Monaco isn't loaded yet, wait for it
-                const checkMonaco = setInterval(() => {
-                    if (typeof monaco !== 'undefined' && monaco.editor) {
-                        monaco.editor.setTheme(savedTheme);
-                        clearInterval(checkMonaco);
-                    }
-                }, 100);
-
-                // Clear interval after 5 seconds if Monaco doesn't load
-                setTimeout(() => clearInterval(checkMonaco), 5000);
-            }
+            // Wait for Monaco to be available
+            await this.waitForMonaco();
+            
+            // Apply the theme
+            await this.applyTheme(savedTheme);
             
             // Update UI
             this.updateUITheme(savedTheme);
@@ -104,6 +92,58 @@ class SettingsManager {
             // Set to default theme if there's an error
             this.themeSelect.value = 'vs-dark';
             this.updateUITheme('vs-dark');
+        }
+    }
+
+    waitForMonaco() {
+        return new Promise((resolve, reject) => {
+            if (typeof monaco !== 'undefined' && monaco.editor) {
+                resolve();
+                return;
+            }
+
+            const checkMonaco = setInterval(() => {
+                if (typeof monaco !== 'undefined' && monaco.editor) {
+                    clearInterval(checkMonaco);
+                    clearTimeout(timeout);
+                    resolve();
+                }
+            }, 100);
+
+            const timeout = setTimeout(() => {
+                clearInterval(checkMonaco);
+                reject(new Error('Monaco editor failed to load'));
+            }, 5000);
+        });
+    }
+
+    async applyTheme(themeName) {
+        try {
+            await this.waitForMonaco();
+
+            // Handle built-in themes
+            if (['vs-dark', 'hc-black'].includes(themeName)) {
+                monaco.editor.setTheme(themeName);
+                return;
+            }
+
+            // Apply custom theme
+            const customTheme = window.editorThemes?.[themeName];
+            if (customTheme) {
+                // Define the theme if it hasn't been defined yet
+                try {
+                    monaco.editor.defineTheme(themeName, customTheme);
+                } catch (e) {
+                    console.warn('Theme already defined:', themeName);
+                }
+                monaco.editor.setTheme(themeName);
+            } else {
+                console.warn(`Theme ${themeName} not found, falling back to vs-dark`);
+                monaco.editor.setTheme('vs-dark');
+            }
+        } catch (error) {
+            console.error('Error applying theme:', error);
+            monaco.editor.setTheme('vs-dark');
         }
     }
 
