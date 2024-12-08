@@ -15,22 +15,44 @@
   </head>
   <body>
     <div class="container">
-      <div class="file-explorer">
-        <div class="explorer-header">
-          <h3>File Explorer</h3>
-          <button id="open-folder">Open Folder</button>
+      <div class="sidebar">
+        <!-- Sidebar Activity Bar -->
+        <div class="activity-bar">
+          <div class="activity-bar-top">
+            <button class="activity-button active" title="Explorer">
+              <i class="fas fa-files-o"></i>
+            </button>
+          </div>
+          <div class="activity-bar-bottom">
+            <button id="toggle-terminal" class="activity-button" title="Terminal">
+              <i class="fas fa-terminal"></i>
+            </button>
+          </div>
         </div>
-        <div id="file-tree"></div>
+        
+        <!-- Sidebar Panel -->
+        <div class="sidebar-panel">
+          <div class="file-explorer">
+            <div class="explorer-header">
+              <div class="header-with-collapse">
+                <button class="collapse-button">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <h3>File Explorer</h3>
+              </div>
+              <button id="open-folder">Open Folder</button>
+            </div>
+            <div id="file-tree"></div>
+          </div>
+        </div>
       </div>
+      
       <div class="editor">
         <div class="editor-tabs">
           <div class="tabs-container"></div>
         </div>
         <div id="monaco-editor"></div>
         <div id="terminal" class="hidden"></div>
-        <button id="toggle-terminal" class="toggle-terminal">
-          <i class="fas fa-terminal"></i>
-        </button>
       </div>
     </div>
     <script src="node_modules/monaco-editor/min/vs/loader.js"></script>
@@ -57,6 +79,13 @@
         script.src = "./renderer.js";
         document.body.appendChild(script);
       });
+    </script>
+    <script src="sidebarManager.js"></script>
+    <script>
+      // Initialize sidebar manager
+      window.sidebarManager = new SidebarManager();
+      // Restore saved state
+      window.sidebarManager.restoreState();
     </script>
   </body>
 </html>

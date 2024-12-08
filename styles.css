@@ -14,14 +14,111 @@ body {
   overflow: hidden; /* Prevent main window scroll */
 }
 
-.file-explorer {
-  width: 250px;
+.sidebar {
+  display: flex;
   background-color: #252526;
   color: #fff;
-  border-right: 1px solid #1e1e1e;
+  overflow: hidden;
+}
+
+.activity-bar {
+  width: 48px;
+  background-color: #333333;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Prevent explorer scroll bleeding */
+  justify-content: space-between;
+  padding: 8px 0;
+  z-index: 2;
+}
+
+.activity-bar-top,
+.activity-bar-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.activity-button {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: #858585;
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+}
+
+.activity-button:hover {
+  color: #ffffff;
+}
+
+.activity-button.active {
+  color: #ffffff;
+}
+
+.activity-button.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 2px;
+  background-color: #ffffff;
+}
+
+.sidebar-panel {
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar-panel.collapsed {
+  width: 0;
+}
+
+.file-explorer {
+  flex: 1;
+  background-color: #252526;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 250px; /* Ensure content doesn't shrink */
+}
+
+.header-with-collapse {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.collapse-button {
+  background: transparent;
+  border: none;
+  color: #858585;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+}
+
+.collapse-button:hover {
+  color: #ffffff;
+  background-color: #383838;
+}
+
+.sidebar.collapsed .collapse-button i {
+  transform: rotate(180deg);
 }
 
 #file-tree {
@@ -153,8 +250,8 @@ body {
 
 .explorer-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 8px;
   padding: 8px 12px;
   font-size: 11px;
   font-weight: 600;
