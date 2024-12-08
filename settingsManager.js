@@ -11,7 +11,18 @@ class SettingsManager {
     }
 
     async initialize() {
-        // Set up event listeners
+        // Set up event listeners first
+        this.setupEventListeners();
+
+        // Wait for Monaco to be available
+        await this.waitForMonaco();
+        
+        // Load and apply saved theme
+        await this.loadAndApplyTheme();
+    }
+
+    setupEventListeners() {
+        // Settings popup controls
         this.toggleButton.addEventListener('click', () => this.toggleSettings());
         this.closeButton.addEventListener('click', () => this.hideSettings());
         this.themeSelect.addEventListener('change', (e) => this.handleThemeChange(e));
@@ -30,34 +41,50 @@ class SettingsManager {
                 this.hideSettings();
             }
         });
+    }
 
-        // Wait for Monaco to be available before loading theme
-        await this.waitForMonaco();
-        
-        // Load saved theme from store
+    async loadAndApplyTheme() {
         try {
+            console.log('Loading saved theme...');
             const savedTheme = await window.electronAPI.store.get('theme');
-            if (savedTheme) {
-                this.currentTheme = savedTheme;
-                this.themeSelect.value = savedTheme;
-                await this.applyTheme(savedTheme);
-                // Make sure to update UI colors as well
-                this.updateUITheme(savedTheme);
-            } else {
-                // If no saved theme, use default and save it
-                this.currentTheme = 'vs-dark';
-                this.themeSelect.value = 'vs-dark';
-                await this.applyTheme('vs-dark');
+            console.log('Saved theme loaded:', savedTheme);
+            
+            const themeToApply = savedTheme || 'vs-dark';
+            this.currentTheme = themeToApply;
+            this.themeSelect.value = themeToApply;
+
+            // Apply theme to all components
+            await this.applyTheme(themeToApply);
+            this.updateUITheme(themeToApply);
+            
+            // Update editor if available
+            if (window.fileExplorer?.editor) {
+                window.fileExplorer.editor.updateOptions({ theme: themeToApply });
+            }
+            
+            // Update terminal if available
+            if (window.terminalManager) {
+                window.terminalManager.updateTheme(themeToApply);
+            }
+
+            // If no theme was saved, save the default
+            if (!savedTheme) {
                 await window.electronAPI.store.set('theme', 'vs-dark');
-                this.updateUITheme('vs-dark');
+                console.log('Default theme saved');
             }
         } catch (error) {
-            console.warn('Failed to load saved theme:', error);
-            // Fallback to default theme
+            console.error('Failed to load/apply theme:', error);
             this.currentTheme = 'vs-dark';
             this.themeSelect.value = 'vs-dark';
-            await this.applyTheme('vs-dark');
-            this.updateUITheme('vs-dark');
+            
+            // Apply default theme as fallback
+            try {
+                await this.applyTheme('vs-dark');
+                this.updateUITheme('vs-dark');
+                await window.electronAPI.store.set('theme', 'vs-dark');
+            } catch (e) {
+                console.error('Failed to apply fallback theme:', e);
+            }
         }
     }
 
@@ -84,20 +111,19 @@ class SettingsManager {
         const previousTheme = this.currentTheme;
         
         try {
-            // Apply the theme first to ensure it works
-            await this.applyTheme(theme);
-            
-            // If theme applied successfully, save it
+            // Save theme first to ensure persistence
             await window.electronAPI.store.set('theme', theme);
-            console.log('Theme saved:', theme); // Debug log
+            console.log('Theme saved:', theme);
             
+            // Apply the theme
+            await this.applyTheme(theme);
             this.currentTheme = theme;
             
             // Update UI elements
             this.updateUITheme(theme);
 
             // Update Monaco editor instance if it exists
-            if (window.fileExplorer && window.fileExplorer.editor) {
+            if (window.fileExplorer?.editor) {
                 window.fileExplorer.editor.updateOptions({ theme });
                 console.log('Updated editor theme:', theme);
             }
@@ -105,6 +131,12 @@ class SettingsManager {
             // Update terminal theme if terminal exists
             if (window.terminalManager) {
                 window.terminalManager.updateTheme(theme);
+            }
+
+            // Double-check theme was saved
+            const savedTheme = await window.electronAPI.store.get('theme');
+            if (savedTheme !== theme) {
+                throw new Error('Theme save verification failed');
             }
         } catch (error) {
             console.error('Failed to change theme:', error);
@@ -115,33 +147,21 @@ class SettingsManager {
             this.updateUITheme(previousTheme);
             
             // Revert editor theme
-            if (window.fileExplorer && window.fileExplorer.editor) {
+            if (window.fileExplorer?.editor) {
                 window.fileExplorer.editor.updateOptions({ theme: previousTheme });
             }
-        }
-    }
 
-    async loadSavedTheme() {
-        try {
-            // Get saved theme or use default
-            const savedTheme = await window.electronAPI.store.get('theme') || 'vs-dark';
-            
-            // Update dropdown
-            this.themeSelect.value = savedTheme;
-            
-            // Wait for Monaco to be available
-            await this.waitForMonaco();
-            
-            // Apply the theme
-            await this.applyTheme(savedTheme);
-            
-            // Update UI
-            this.updateUITheme(savedTheme);
-        } catch (error) {
-            console.error('Failed to load saved theme:', error);
-            // Set to default theme if there's an error
-            this.themeSelect.value = 'vs-dark';
-            this.updateUITheme('vs-dark');
+            // Revert terminal theme
+            if (window.terminalManager) {
+                window.terminalManager.updateTheme(previousTheme);
+            }
+
+            // Ensure the previous theme is still saved
+            try {
+                await window.electronAPI.store.set('theme', previousTheme);
+            } catch (e) {
+                console.error('Failed to restore previous theme:', e);
+            }
         }
     }
 
@@ -207,11 +227,6 @@ class SettingsManager {
         Object.entries(colors).forEach(([property, value]) => {
             root.style.setProperty(property, value);
         });
-
-        // Add theme class to body
-        const isDark = theme.includes('dark') || theme.includes('black');
-        document.body.classList.toggle('theme-dark', isDark);
-        document.body.classList.toggle('theme-light', !isDark);
     }
 
     async handleReset() {
