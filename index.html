@@ -134,7 +134,7 @@
       };
 
       // Load Monaco and then our renderer
-      require(["vs/editor/editor.main"], function () {
+      require(["vs/editor/editor.main"], async function () {
         window.monaco = monaco;
 
         // Initialize themes
@@ -146,6 +146,15 @@
                     console.warn('Theme already defined:', name);
                 }
             });
+        }
+
+        // Load saved theme if available
+        try {
+            const savedTheme = await window.electronAPI.store.get('theme') || 'vs-dark';
+            monaco.editor.setTheme(savedTheme);
+        } catch (error) {
+            console.warn('Failed to load saved theme:', error);
+            monaco.editor.setTheme('vs-dark');
         }
 
         const script = document.createElement("script");

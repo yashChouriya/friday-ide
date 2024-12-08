@@ -5,11 +5,12 @@ class SettingsManager {
         this.closeButton = document.getElementById('close-settings');
         this.themeSelect = document.getElementById('theme-select');
         this.resetButton = document.getElementById('reset-all');
+        this.currentTheme = 'vs-dark'; // Default theme
 
         this.initialize();
     }
 
-    initialize() {
+    async initialize() {
         // Set up event listeners
         this.toggleButton.addEventListener('click', () => this.toggleSettings());
         this.closeButton.addEventListener('click', () => this.hideSettings());
@@ -23,15 +24,24 @@ class SettingsManager {
             }
         });
 
-        // Load saved theme
-        this.loadSavedTheme();
-
         // Handle escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !this.settingsPopup.classList.contains('hidden')) {
                 this.hideSettings();
             }
         });
+
+        // Load saved theme from store
+        try {
+            const savedTheme = await window.electronAPI.store.get('theme');
+            if (savedTheme) {
+                this.currentTheme = savedTheme;
+                this.themeSelect.value = savedTheme;
+                await this.applyTheme(savedTheme);
+            }
+        } catch (error) {
+            console.warn('Failed to load saved theme:', error);
+        }
     }
 
     toggleSettings() {
@@ -56,18 +66,20 @@ class SettingsManager {
         const theme = event.target.value;
         
         try {
-            // Save theme preference first
-            await window.electronAPI.store.set('theme', theme);
-            
-            // Apply the theme
+            // Apply the theme first to ensure it works
             await this.applyTheme(theme);
+            
+            // If theme applied successfully, save it
+            await window.electronAPI.store.set('theme', theme);
+            this.currentTheme = theme;
             
             // Update UI elements
             this.updateUITheme(theme);
         } catch (error) {
             console.error('Failed to change theme:', error);
             // Revert theme selection if there's an error
-            this.themeSelect.value = await window.electronAPI.store.get('theme') || 'vs-dark';
+            this.themeSelect.value = this.currentTheme;
+            await this.applyTheme(this.currentTheme);
         }
     }
 
