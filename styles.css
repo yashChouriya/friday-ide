@@ -4,8 +4,48 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* Default dark theme colors - will be overridden by theme selection */
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #252526;
+  --bg-tertiary: #333333;
+  --bg-hover: #2a2a2a;
+  --bg-active: #37373d;
+  --bg-selected: #094771;
+  --bg-selected-unfocused: #373737;
+
+  --border-color: #454545;
+  --border-subtle: #323232;
+  --border-active: #007acc;
+
+  --text-primary: #cccccc;
+  --text-secondary: #858585;
+  --text-active: #ffffff;
+  --text-inactive: #6b6b6b;
+  --text-link: #3794ff;
+  --text-error: #f48771;
+  --text-warning: #cca700;
+  --text-success: #89d185;
+
+  --scrollbar-bg: #1e1e1e;
+  --scrollbar-thumb: #424242;
+  --scrollbar-thumb-hover: #4f4f4f;
+  --button-bg: #0e639c;
+  --button-hover: #1177bb;
+  --button-active: #13487b;
+  --input-bg: #3c3c3c;
+  --input-border: #3c3c3c;
+  --input-focused-border: #007acc;
+  --dropdown-bg: #3c3c3c;
+  --popup-bg: #252526;
+  --popup-border: #454545;
+  --tree-indent-guide: #404040;
+}
+
 body {
   font-family: Arial, sans-serif;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
 }
 
 .container {
@@ -16,14 +56,14 @@ body {
 
 .sidebar {
   display: flex;
-  background-color: #252526;
-  color: #fff;
+  background-color: var(--bg-secondary);
+  color: var(--text-active);
   overflow: hidden;
 }
 
 .activity-bar {
   width: 48px;
-  background-color: #333333;
+  background-color: var(--bg-tertiary);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -47,7 +87,7 @@ body {
   align-items: center;
   background: transparent;
   border: none;
-  color: #858585;
+  color: var(--text-secondary);
   cursor: pointer;
   position: relative;
   padding: 0;
@@ -60,8 +100,8 @@ body {
 }
 
 .activity-button:hover {
-  color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-active);
+  background-color: var(--bg-hover);
 }
 
 .activity-button:hover i {
@@ -69,12 +109,11 @@ body {
 }
 
 .activity-button.active {
-  color: #ffffff;
+  color: var(--text-active);
 }
 
 .activity-button.active i {
-  /* Add subtle text shadow for better visibility */
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+  text-shadow: 0 0 8px var(--border-active);
 }
 
 .activity-button.active::before {
@@ -84,8 +123,8 @@ body {
   top: 20%;
   bottom: 20%;
   width: 2px;
-  background-color: #ffffff;
-  box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+  background-color: var(--border-active);
+  box-shadow: 0 0 4px var(--border-active);
 }
 
 /* Special styling for terminal button */
@@ -94,16 +133,16 @@ body {
 }
 
 #toggle-terminal.activity-button.active {
-  color: #0098fa; /* Use the existing terminal active color */
+  color: var(--button-bg);
 }
 
 #toggle-terminal.activity-button.active i {
-  text-shadow: 0 0 8px rgba(0, 152, 250, 0.4);
+  text-shadow: 0 0 8px var(--button-bg);
 }
 
 #toggle-terminal.activity-button.active::before {
-  background-color: #0098fa;
-  box-shadow: 0 0 4px rgba(0, 152, 250, 0.4);
+  background-color: var(--button-bg);
+  box-shadow: 0 0 4px var(--button-bg);
 }
 
 .sidebar-panel {
@@ -121,8 +160,8 @@ body {
 
 .file-explorer {
   flex: 1;
-  background-color: #252526;
-  color: #fff;
+  background-color: var(--bg-secondary);
+  color: var(--text-active);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -194,23 +233,23 @@ body {
 }
 
 #file-tree::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: var(--scrollbar-bg);
 }
 
 #file-tree::-webkit-scrollbar-thumb {
-  background: #424242;
+  background: var(--scrollbar-thumb);
   border-radius: 5px;
-  border: 2px solid #1e1e1e;
+  border: 2px solid var(--scrollbar-bg);
 }
 
 #file-tree::-webkit-scrollbar-thumb:hover {
-  background: #4f4f4f;
+  background: var(--scrollbar-thumb-hover);
 }
 
 .editor {
   flex: 1;
-  background-color: #1e1e1e;
-  color: #fff;
+  background-color: var(--bg-primary);
+  color: var(--text-active);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -223,8 +262,8 @@ body {
 .editor-tabs {
   visibility: hidden; /* Initially hidden */
   height: 35px;
-  background-color: #252526;
-  border-bottom: 1px solid #333;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
@@ -243,8 +282,8 @@ body {
   display: flex;
   align-items: center;
   padding: 0 10px;
-  background-color: #2d2d2d;
-  border-right: 1px solid #333;
+  background-color: var(--bg-tertiary);
+  border-right: 1px solid var(--border-subtle);
   min-width: 120px;
   max-width: 200px;
   height: 100%;
@@ -255,11 +294,11 @@ body {
 }
 
 .tab.active {
-  background-color: #1e1e1e;
+  background-color: var(--bg-primary);
 }
 
 .tab:hover:not(.active) {
-  background-color: #343434;
+  background-color: var(--bg-hover);
 }
 
 .tab-title {
@@ -268,11 +307,11 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 13px;
-  color: #969696;
+  color: var(--text-secondary);
 }
 
 .tab.active .tab-title {
-  color: #ffffff;
+  color: var(--text-active);
 }
 
 .tab.modified .tab-title::before {
@@ -280,7 +319,7 @@ body {
   display: inline-block;
   width: 6px;
   height: 6px;
-  background-color: #0098fa;
+  background-color: var(--button-bg);
   border-radius: 50%;
   margin-right: 5px;
   vertical-align: middle;
@@ -296,21 +335,21 @@ body {
   justify-content: center;
   border-radius: 3px;
   font-size: 14px;
-  color: #969696;
+  color: var(--text-secondary);
 }
 
 .tab-close:hover {
-  background-color: #404040;
-  color: #ffffff;
+  background-color: var(--bg-hover);
+  color: var(--text-active);
 }
 
 .tab-icon {
   font-size: 14px;
-  color: #969696;
+  color: var(--text-secondary);
 }
 
 .tab.active .tab-icon {
-  color: #ffffff;
+  color: var(--text-active);
 }
 
 .explorer-header {
@@ -322,20 +361,20 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid #383838;
-  background-color: #252526;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--bg-secondary);
 }
 
 .explorer-header h3 {
   margin: 0;
   font-size: 14px;
-  color: #ccc;
+  color: var(--text-primary);
 }
 
 #open-folder {
   background: transparent;
-  border: 1px solid #383838;
-  color: #ccc;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
   padding: 4px 8px;
   border-radius: 3px;
   cursor: pointer;
@@ -344,13 +383,13 @@ body {
 }
 
 #open-folder:hover {
-  background: #383838;
-  border-color: #454545;
+  background: var(--bg-hover);
+  border-color: var(--border-active);
 }
 
 #open-folder:active {
-  background: #454545;
-  border-color: #525252;
+  background: var(--bg-active);
+  border-color: var(--border-active);
 }
 
 #file-tree {
@@ -378,7 +417,7 @@ body {
 }
 
 .tree-item-content:hover {
-  background-color: #2a2d2e;
+  background-color: var(--bg-hover);
 }
 
 .tree-item .icon {
@@ -387,10 +426,11 @@ body {
   margin-right: 4px;
   text-align: center;
   transition: filter 0.2s ease;
+  color: var(--text-secondary);
 }
 
 .tree-item .icon.fa-folder {
-  color: #dcb67a;
+  color: var(--text-warning);
 }
 
 .tree-item.expanded > .tree-item-content .icon.fa-folder:before {
@@ -398,13 +438,13 @@ body {
 }
 
 .tree-item-content:hover .icon {
-  color: #fff;
+  color: var(--text-active);
 }
 
 .tree-item .name {
   font-size: 13px;
   line-height: 22px;
-  color: #cccccc;
+  color: var(--text-primary);
 }
 
 .tree-item.directory > .children {
@@ -419,7 +459,7 @@ body {
   top: 22px;
   bottom: 0;
   width: 1px;
-  background-color: #383838;
+  background-color: var(--tree-indent-guide);
 }
 
 .arrow-icon {
@@ -429,7 +469,7 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  color: #888;
+  color: var(--text-secondary);
   transition: transform 0.15s ease;
 }
 
@@ -447,12 +487,12 @@ body {
 }
 
 .tree-item-content.selected {
-  background-color: #37373d;
+  background-color: var(--bg-selected);
 }
 
 .tree-item-content.selected .name,
 .tree-item-content.selected .icon {
-  color: #ffffff;
+  color: var(--text-active);
 }
 
 /* Add guides for each level */
@@ -482,8 +522,8 @@ body {
 
 #terminal {
   height: 300px;
-  background-color: #1e1e1e;
-  border-top: 1px solid #333;
+  background-color: var(--bg-primary);
+  border-top: 1px solid var(--border-subtle);
   padding: 4px;
   z-index: 10;
   position: relative;
@@ -641,17 +681,17 @@ body {
 }
 
 .xterm-viewport::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: var(--scrollbar-bg);
 }
 
 .xterm-viewport::-webkit-scrollbar-thumb {
-  background: #424242;
+  background: var(--scrollbar-thumb);
   border-radius: 5px;
-  border: 2px solid #1e1e1e;
+  border: 2px solid var(--scrollbar-bg);
 }
 
 .xterm-viewport::-webkit-scrollbar-thumb:hover {
-  background: #4f4f4f;
+  background: var(--scrollbar-thumb-hover);
 }
 
 .toggle-terminal {

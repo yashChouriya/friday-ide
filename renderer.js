@@ -24,15 +24,27 @@ class FileExplorer {
     }
 
     async initializeMonaco() {
-        return new Promise((resolve) => {
+        return new Promise(async (resolve) => {
             // Set up keyboard shortcuts
             this.setupKeyboardShortcuts();
-            // Monaco is already loaded by the time this code runs
-            // Initialize Monaco Editor
+
+            // Get saved theme before creating editor
+            let theme = 'vs-dark';
+            try {
+                const savedTheme = await window.electronAPI.store.get('theme');
+                if (savedTheme) {
+                    theme = savedTheme;
+                    console.log('Loaded saved theme for editor:', theme);
+                }
+            } catch (error) {
+                console.warn('Failed to load theme for editor:', error);
+            }
+
+            // Initialize Monaco Editor with saved theme
             this.editor = monaco.editor.create(this.editorContainer, {
                 value: '', // Empty initial content
                 language: 'plaintext',
-                theme: 'vs-dark',
+                theme: theme,
                 automaticLayout: true,
                 minimap: {
                     enabled: true
