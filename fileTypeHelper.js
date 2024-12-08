@@ -12,8 +12,8 @@ class FileTypeHelper {
         'ts': { icon: 'fab fa-js-square', color: '#3178C6', language: 'typescript' },
         'tsx': { icon: 'fab fa-react', color: '#61DAFB', language: 'typescript' },
         'vue': { icon: 'fab fa-vuejs', color: '#4FC08D', language: 'vue' },
-        'svelte': { icon: 'fas fa-fire-alt', color: '#FF3E00', language: 'svelte' },
-        'astro': { icon: 'fas fa-rocket', color: '#FF5D01', language: 'astro' },
+        'svelte': { icon: 'fas fa-circle', color: '#FF3E00', language: 'svelte' },
+        'astro': { icon: 'fas fa-star', color: '#FF5D01', language: 'astro' },
         'angular': { icon: 'fab fa-angular', color: '#DD0031', language: 'typescript' },
 
         // Programming Languages
@@ -29,12 +29,12 @@ class FileTypeHelper {
         'go': { icon: 'fas fa-file-code', color: '#00ADD8', language: 'go' },
         'rs': { icon: 'fas fa-gear', color: '#DEA584', language: 'rust' },
         'swift': { icon: 'fas fa-bolt', color: '#FA7343', language: 'swift' },
-        'kt': { icon: 'fas fa-k', color: '#A97BFF', language: 'kotlin' },
+        'kt': { icon: 'fas fa-file-code', color: '#A97BFF', language: 'kotlin' },
         'scala': { icon: 'fas fa-file-code', color: '#DC322F', language: 'scala' },
-        'dart': { icon: 'fas fa-bullseye', color: '#0175C2', language: 'dart' },
+        'dart': { icon: 'fas fa-file-code', color: '#0175C2', language: 'dart' },
 
         // Data & Config
-        'json': { icon: 'fas fa-braces', color: '#292929', language: 'json' },
+        'json': { icon: 'fas fa-code', color: 'red', language: 'json' },
         'yaml': { icon: 'fas fa-file-code', color: '#CB171E', language: 'yaml' },
         'yml': { icon: 'fas fa-file-code', color: '#CB171E', language: 'yaml' },
         'xml': { icon: 'fas fa-code', color: '#0060AC', language: 'xml' },
@@ -106,8 +106,8 @@ class FileTypeHelper {
         'tsconfig.json': { icon: 'fab fa-js-square', color: '#3178C6', language: 'json' },
         'vite.config.js': { icon: 'fas fa-bolt', color: '#646CFF', language: 'javascript' },
         'rollup.config.js': { icon: 'fas fa-scroll', color: '#FF3333', language: 'javascript' },
-        'next.config.js': { icon: 'fas fa-n', color: '#000000', language: 'javascript' },
-        'nuxt.config.js': { icon: 'fas fa-n', color: '#00DC82', language: 'javascript' },
+        'next.config.js': { icon: 'fas fa-file-code', color: '#000000', language: 'javascript' },
+        'nuxt.config.js': { icon: 'fas fa-file-code', color: '#00DC82', language: 'javascript' },
         'svelte.config.js': { icon: 'fas fa-fire-alt', color: '#FF3E00', language: 'javascript' },
         'makefile': { icon: 'fas fa-cogs', color: '#9B9B9B', language: 'makefile' },
         'cmake': { icon: 'fas fa-cogs', color: '#064F8C', language: 'cmake' },
