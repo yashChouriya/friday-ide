@@ -33,5 +33,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
     monacoEnv: {
         getBasePath: () => 'node_modules/monaco-editor/min',
         getWorkerPath: () => './node_modules/monaco-editor/min/vs/base/worker/workerMain.js'
+    },
+    // Terminal operations
+    terminal: {
+        create: () => ipcRenderer.invoke('terminal-create'),
+        resize: (id, cols, rows) => ipcRenderer.invoke('terminal-resize', { id, cols, rows }),
+        write: (id, data) => ipcRenderer.invoke('terminal-write', { id, data }),
+        destroy: (id) => ipcRenderer.invoke('terminal-destroy', { id }),
+        onData: (callback) => {
+            const subscription = (event, data) => callback(data);
+            ipcRenderer.on('terminal-data', subscription);
+            return () => ipcRenderer.removeListener('terminal-data', subscription);
+        }
     }
 });

@@ -5,6 +5,23 @@ var os = require("os");
 var pty = require("node-pty");
 var shell = os.platform() === "win32" ? "powershell.exe" : "bash";
 
+// Store terminal instances
+const terminals = new Map();
+
+// Create a new terminal instance
+function createTerminal(id) {
+  const term = pty.spawn(shell, [], {
+    name: 'xterm-256color',
+    cols: 80,
+    rows: 24,
+    cwd: process.env.HOME,
+    env: process.env
+  });
+
+  terminals.set(id, term);
+  return term;
+}
+
 let store;
 
 async function initializeStore() {
@@ -248,6 +265,47 @@ ipcMain.on("save-state", (event) => {
     console.error("Error in sync save:", error);
     event.returnValue = false;
   }
+});
+
+// Terminal IPC Handlers
+ipcMain.handle('terminal-create', (event) => {
+  const id = Date.now().toString();
+  const term = createTerminal(id);
+  
+  // Handle terminal output
+  term.onData((data) => {
+    BrowserWindow.getFocusedWindow()?.webContents.send('terminal-data', { id, data });
+  });
+
+  return id;
+});
+
+ipcMain.handle('terminal-resize', (event, { id, cols, rows }) => {
+  const term = terminals.get(id);
+  if (term) {
+    term.resize(cols, rows);
+    return true;
+  }
+  return false;
+});
+
+ipcMain.handle('terminal-write', (event, { id, data }) => {
+  const term = terminals.get(id);
+  if (term) {
+    term.write(data);
+    return true;
+  }
+  return false;
+});
+
+ipcMain.handle('terminal-destroy', (event, { id }) => {
+  const term = terminals.get(id);
+  if (term) {
+    term.kill();
+    terminals.delete(id);
+    return true;
+  }
+  return false;
 });
 
 // Error handling
