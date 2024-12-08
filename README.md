@@ -140,4 +140,4 @@ This project is licensed under the ISC License - see the LICENSE file for detail
 
 ---
 
-Built with ❤️ by the Friday IDE Team
+Built with ❤️

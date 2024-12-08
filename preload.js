@@ -12,7 +12,21 @@ const appPath = __dirname;
 const monacoPath = path.join(appPath, 'node_modules/monaco-editor/min/vs');
 
 // Expose necessary APIs to renderer process
+// Store API for settings and app state
+const storeApi = {
+    get: (key) => ipcRenderer.invoke('store:get', key),
+    set: (key, value) => ipcRenderer.invoke('store:set', key, value),
+    clear: () => ipcRenderer.invoke('store:clear'),
+};
+
+// App control API
+const appApi = {
+    restart: () => ipcRenderer.invoke('app:restart'),
+};
+
 contextBridge.exposeInMainWorld('electronAPI', {
+    store: storeApi,
+    app: appApi,
     // File system operations
     path: {
         basename: path.basename,

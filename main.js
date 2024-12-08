@@ -313,6 +313,42 @@ ipcMain.handle('terminal-destroy', (event, { id }) => {
   return false;
 });
 
+// Settings management IPC handlers
+ipcMain.handle('store:get', async (_, key) => {
+  try {
+    return store.get(key);
+  } catch (error) {
+    console.error('Error getting store value:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('store:set', async (_, key, value) => {
+  try {
+    store.set(key, value);
+    return true;
+  } catch (error) {
+    console.error('Error setting store value:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('store:clear', async () => {
+  try {
+    store.clear();
+    return true;
+  } catch (error) {
+    console.error('Error clearing store:', error);
+    throw error;
+  }
+});
+
+// App restart handler
+ipcMain.handle('app:restart', async () => {
+  app.relaunch();
+  app.exit();
+});
+
 // Error handling
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);

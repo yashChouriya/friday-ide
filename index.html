@@ -27,6 +27,9 @@
             <button id="toggle-terminal" class="activity-button" title="Terminal">
               <i class="fas fa-terminal"></i>
             </button>
+            <button id="toggle-settings" class="activity-button" title="Settings">
+              <i class="fas fa-cog"></i>
+            </button>
           </div>
         </div>
         
@@ -73,6 +76,42 @@
         <div id="terminal" class="hidden"></div>
       </div>
     </div>
+
+    <!-- Settings Popup -->
+    <div id="settings-popup" class="settings-popup hidden">
+      <div class="settings-content">
+        <div class="settings-header">
+          <h2>Settings</h2>
+          <button id="close-settings" class="close-button">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="settings-body">
+          <div class="settings-section">
+            <h3>Appearance</h3>
+            <div class="setting-item">
+              <label for="theme-select">Theme</label>
+              <select id="theme-select" class="theme-dropdown">
+                <option value="vs-dark">Dark (Default)</option>
+                <option value="vs">Light</option>
+                <option value="hc-black">High Contrast Dark</option>
+                <option value="hc-light">High Contrast Light</option>
+              </select>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>Application</h3>
+            <div class="setting-item">
+              <button id="reset-all" class="danger-button">
+                <i class="fas fa-trash-alt"></i>
+                Reset All Settings
+              </button>
+              <p class="setting-description">This will reset all settings to their default values and clear stored data.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <script src="node_modules/monaco-editor/min/vs/loader.js"></script>
     <script>
       // Configure path to monaco base
@@ -100,15 +139,17 @@
     </script>
     <script src="sidebarManager.js"></script>
     <script src="welcomeManager.js"></script>
+    <script src="settingsManager.js"></script>
     <script>
       // Initialize sidebar manager
       window.sidebarManager = new SidebarManager();
       // Restore saved state
       window.sidebarManager.restoreState();
 
-      // Initialize welcome manager after DOM is fully loaded
+      // Initialize managers after DOM is fully loaded
       document.addEventListener('DOMContentLoaded', () => {
         window.welcomeManager = new WelcomeManager();
+        window.settingsManager = new SettingsManager();
       });
     </script>
   </body>
