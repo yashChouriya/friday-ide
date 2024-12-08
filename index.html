@@ -52,6 +52,24 @@
           <div class="tabs-container"></div>
         </div>
         <div id="monaco-editor"></div>
+        <div id="welcome-screen">
+          <div class="welcome-content">
+            <div class="logo-container">
+              <i class="fas fa-code"></i>
+            </div>
+            <h1>Welcome to Friday IDE</h1>
+            <p>Open a folder to start coding</p>
+            <button class="welcome-button" id="welcome-open-folder">
+              <i class="fas fa-folder-open"></i>
+              Open Folder
+            </button>
+            <div class="keyboard-shortcut">
+              <span class="key">Ctrl</span>
+              <span>+</span>
+              <span class="key">O</span>
+            </div>
+          </div>
+        </div>
         <div id="terminal" class="hidden"></div>
       </div>
     </div>
@@ -81,11 +99,17 @@
       });
     </script>
     <script src="sidebarManager.js"></script>
+    <script src="welcomeManager.js"></script>
     <script>
       // Initialize sidebar manager
       window.sidebarManager = new SidebarManager();
       // Restore saved state
       window.sidebarManager.restoreState();
+
+      // Initialize welcome manager after DOM is fully loaded
+      document.addEventListener('DOMContentLoaded', () => {
+        window.welcomeManager = new WelcomeManager();
+      });
     </script>
   </body>
 </html>
