@@ -1,5 +1,41 @@
 // UI theme colors mapping
 window.themeColors = {
+    'synthwave-84': {
+        '--bg-primary': '#262335',
+        '--bg-secondary': '#241b2f',
+        '--bg-tertiary': '#2a2139',
+        '--bg-hover': '#34294f',
+        '--bg-active': '#37324e',
+        '--bg-selected': '#463465',
+        '--bg-selected-unfocused': '#34294f',
+
+        '--border-color': '#495495',
+        '--border-subtle': '#2a2139',
+        '--border-active': '#ff7edb',
+
+        '--text-primary': '#ffffff',
+        '--text-secondary': '#a597c2',
+        '--text-active': '#ff7edb',
+        '--text-inactive': '#495495',
+        '--text-link': '#36f9f6',
+        '--text-error': '#f97e72',
+        '--text-warning': '#fede5d',
+        '--text-success': '#72f1b8',
+
+        '--scrollbar-bg': '#241b2f',
+        '--scrollbar-thumb': '#463465',
+        '--scrollbar-thumb-hover': '#575087',
+        '--button-bg': '#ff7edb',
+        '--button-hover': '#ff92e0',
+        '--button-active': '#ff6ad5',
+        '--input-bg': '#2a2139',
+        '--input-border': '#495495',
+        '--input-focused-border': '#ff7edb',
+        '--dropdown-bg': '#2a2139',
+        '--popup-bg': '#241b2f',
+        '--popup-border': '#495495',
+        '--tree-indent-guide': '#495495'
+    },
     'vs-dark': {
         // Backgrounds
         '--bg-primary': '#1e1e1e',

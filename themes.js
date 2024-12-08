@@ -1,5 +1,35 @@
 // Monaco Editor theme definitions
 window.editorThemes = {
+    'synthwave-84': {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [
+            { token: 'comment', foreground: '495495', fontStyle: 'italic' },
+            { token: 'keyword', foreground: 'ff7edb' },
+            { token: 'string', foreground: 'ff8b39' },
+            { token: 'number', foreground: 'f97e72' },
+            { token: 'type', foreground: '36f9f6' },
+            { token: 'class', foreground: 'ff7edb' },
+            { token: 'function', foreground: 'fede5d' },
+            { token: 'variable', foreground: 'f97e72' },
+            { token: 'constant', foreground: 'ff8b39' },
+            { token: 'string.escape.js', foreground: '36f9f6' }
+        ],
+        colors: {
+            'editor.background': '#262335',
+            'editor.foreground': '#ffffff',
+            'editor.lineHighlightBackground': '#2a2139',
+            'editor.selectionBackground': '#34294f88',
+            'editor.inactiveSelectionBackground': '#34294f44',
+            'editorCursor.foreground': '#f97e72',
+            'editorWhitespace.foreground': '#2a2139',
+            'editorIndentGuide.background': '#2a2139',
+            'editorLineNumber.foreground': '#495495',
+            'editorLineNumber.activeForeground': '#ff7edb',
+            'editor.findMatchBackground': '#34294f88',
+            'editor.findMatchHighlightBackground': '#34294f88'
+        }
+    },
     'github-dark': {
         base: 'vs-dark',
         inherit: true,
