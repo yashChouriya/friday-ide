@@ -1,361 +1,357 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: Arial, sans-serif;
+  font-family: Arial, sans-serif;
 }
 
 .container {
-    display: flex;
-    height: 100vh;
-    overflow: hidden; /* Prevent main window scroll */
+  display: flex;
+  height: 100vh;
+  overflow: hidden; /* Prevent main window scroll */
 }
 
 .file-explorer {
-    width: 250px;
-    background-color: #252526;
-    color: #fff;
-    border-right: 1px solid #1e1e1e;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; /* Prevent explorer scroll bleeding */
+  width: 250px;
+  background-color: #252526;
+  color: #fff;
+  border-right: 1px solid #1e1e1e;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevent explorer scroll bleeding */
 }
 
 #file-tree {
-    flex: 1;
-    overflow-y: auto; /* Add scrollbar to file tree */
-    overflow-x: hidden;
-    padding: 4px 0;
+  flex: 1;
+  overflow-y: auto; /* Add scrollbar to file tree */
+  overflow-x: hidden;
+  padding: 4px 0;
 }
 
 /* Customize scrollbar for file tree */
 #file-tree::-webkit-scrollbar {
-    width: 10px;
+  width: 10px;
 }
 
 #file-tree::-webkit-scrollbar-track {
-    background: #1e1e1e;
+  background: #1e1e1e;
 }
 
 #file-tree::-webkit-scrollbar-thumb {
-    background: #424242;
-    border-radius: 5px;
-    border: 2px solid #1e1e1e;
+  background: #424242;
+  border-radius: 5px;
+  border: 2px solid #1e1e1e;
 }
 
 #file-tree::-webkit-scrollbar-thumb:hover {
-    background: #4f4f4f;
+  background: #4f4f4f;
 }
 
 .editor {
-    flex: 1;
-    background-color: #1e1e1e;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+  flex: 1;
+  background-color: #1e1e1e;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .editor-tabs {
-    height: 35px;
-    background-color: #252526;
-    border-bottom: 1px solid #333;
-    display: flex;
-    overflow-x: auto;
-    overflow-y: hidden;
+  height: 35px;
+  background-color: #252526;
+  border-bottom: 1px solid #333;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .editor-tabs::-webkit-scrollbar {
-    height: 0px;
+  height: 0px;
 }
 
 .tabs-container {
-    display: flex;
-    height: 100%;
+  display: flex;
+  height: 100%;
 }
 
 .tab {
-    display: flex;
-    align-items: center;
-    padding: 0 10px;
-    background-color: #2d2d2d;
-    border-right: 1px solid #333;
-    min-width: 120px;
-    max-width: 200px;
-    height: 100%;
-    cursor: pointer;
-    user-select: none;
-    position: relative;
-    gap: 5px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  background-color: #2d2d2d;
+  border-right: 1px solid #333;
+  min-width: 120px;
+  max-width: 200px;
+  height: 100%;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  gap: 5px;
 }
 
 .tab.active {
-    background-color: #1e1e1e;
+  background-color: #1e1e1e;
 }
 
 .tab:hover:not(.active) {
-    background-color: #343434;
+  background-color: #343434;
 }
 
 .tab-title {
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 13px;
-    color: #969696;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  color: #969696;
 }
 
 .tab.active .tab-title {
-    color: #ffffff;
+  color: #ffffff;
 }
 
 .tab.modified .tab-title::before {
-    content: '';
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    background-color: #0098fa;
-    border-radius: 50%;
-    margin-right: 5px;
-    vertical-align: middle;
-    position: relative;
-    top: -1px;
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background-color: #0098fa;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
 }
 
 .tab-close {
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 3px;
-    font-size: 14px;
-    color: #969696;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  font-size: 14px;
+  color: #969696;
 }
 
 .tab-close:hover {
-    background-color: #404040;
-    color: #ffffff;
+  background-color: #404040;
+  color: #ffffff;
 }
 
 .tab-icon {
-    font-size: 14px;
-    color: #969696;
+  font-size: 14px;
+  color: #969696;
 }
 
 .tab.active .tab-icon {
-    color: #ffffff;
+  color: #ffffff;
 }
 
 .explorer-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid #383838;
-    background-color: #252526;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #383838;
+  background-color: #252526;
 }
 
 .explorer-header h3 {
-    margin: 0;
-    font-size: 14px;
-    color: #ccc;
+  margin: 0;
+  font-size: 14px;
+  color: #ccc;
 }
 
 #open-folder {
-    background: transparent;
-    border: 1px solid #383838;
-    color: #ccc;
-    padding: 4px 8px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 11px;
-    outline: none;
+  background: transparent;
+  border: 1px solid #383838;
+  color: #ccc;
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+  outline: none;
 }
 
 #open-folder:hover {
-    background: #383838;
-    border-color: #454545;
+  background: #383838;
+  border-color: #454545;
 }
 
 #open-folder:active {
-    background: #454545;
-    border-color: #525252;
+  background: #454545;
+  border-color: #525252;
 }
 
 #file-tree {
-    font-size: 13px;
-    padding: 5px;
-    user-select: none;
+  font-size: 13px;
+  padding: 5px;
+  user-select: none;
 }
 
 .tree-item {
-    cursor: pointer;
-    padding: 3px 0;
-    position: relative;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  cursor: pointer;
+  padding: 3px 0;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tree-item-content {
-    display: flex;
-    align-items: center;
-    padding: 0 8px;
-    height: 22px;
-    border-radius: 3px;
-    gap: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  height: 22px;
+  border-radius: 3px;
+  gap: 4px;
 }
 
 .tree-item-content:hover {
-    background-color: #2a2d2e;
+  background-color: #2a2d2e;
 }
 
 .tree-item .icon {
-    font-size: 14px;
-    width: 16px;
-    margin-right: 4px;
-    text-align: center;
-    transition: filter 0.2s ease;
+  font-size: 14px;
+  width: 16px;
+  margin-right: 4px;
+  text-align: center;
+  transition: filter 0.2s ease;
 }
 
 .tree-item .icon.fa-folder {
-    color: #dcb67a;
+  color: #dcb67a;
 }
 
 .tree-item.expanded > .tree-item-content .icon.fa-folder:before {
-    content: "\f07c";  /* Font Awesome folder-open icon */
+  content: "\f07c"; /* Font Awesome folder-open icon */
 }
 
 .tree-item-content:hover .icon {
-    color: #fff;
+  color: #fff;
 }
 
 .tree-item .name {
-    font-size: 13px;
-    line-height: 22px;
-    color: #cccccc;
+  font-size: 13px;
+  line-height: 22px;
+  color: #cccccc;
 }
 
 .tree-item.directory > .children {
-    display: none;
-    padding-left: 16px;
+  display: none;
+  padding-left: 16px;
 }
 
 .tree-item.directory > .children::before {
-    content: "";
-    position: absolute;
-    left: 8px;
-    top: 22px;
-    bottom: 0;
-    width: 1px;
-    background-color: #383838;
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 22px;
+  bottom: 0;
+  width: 1px;
+  background-color: #383838;
 }
 
 .arrow-icon {
-    width: 16px;
-    height: 16px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    color: #888;
-    transition: transform 0.15s ease;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #888;
+  transition: transform 0.15s ease;
 }
 
 .arrow-spacer {
-    width: 16px;
-    display: inline-block;
+  width: 16px;
+  display: inline-block;
 }
 
 .tree-item.directory.expanded > .tree-item-content .arrow-icon {
-    transform: rotate(90deg);
+  transform: rotate(90deg);
 }
 
 .tree-item.directory.expanded > .children {
-    display: block;
+  display: block;
 }
 
 .tree-item-content.selected {
-    background-color: #37373d;
+  background-color: #37373d;
 }
 
 .tree-item-content.selected .name,
 .tree-item-content.selected .icon {
-    color: #ffffff;
+  color: #ffffff;
 }
 
 /* Add guides for each level */
 .tree-item .children .tree-item-content::before {
-    content: "";
-    position: absolute;
-    left: -8px;
-    top: 11px;
-    width: 8px;
-    height: 1px;
-    background-color: #383838;
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 11px;
+  width: 8px;
+  height: 1px;
+  background-color: #383838;
 }
 
 .editor {
-    position: relative;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 #monaco-editor {
-    flex: 1;
-    background-color: #1e1e1e;
-    overflow: hidden;
-    position: relative;
+  flex: 1;
+  background-color: #1e1e1e;
+  overflow: hidden;
+  position: relative;
 }
 
 #terminal {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 300px;
-    background-color: #1e1e1e;
-    border-top: 1px solid #333;
-    padding: 4px;
-    z-index: 10;
+  height: 300px;
+  background-color: #1e1e1e;
+  border-top: 1px solid #333;
+  padding: 4px;
+  z-index: 10;
 }
 
 #terminal.hidden {
-    display: none;
+  display: none;
 }
 
 .toggle-terminal {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    width: 32px;
-    height: 32px;
-    border-radius: 4px;
-    background: #333;
-    border: none;
-    color: #969696;
-    cursor: pointer;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background: #333;
+  border: none;
+  color: #969696;
+  cursor: pointer;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .toggle-terminal:hover {
-    background: #444;
-    color: #ffffff;
+  background: #444;
+  color: #ffffff;
 }
 
 .toggle-terminal.active {
-    color: #0098fa;
+  color: #0098fa;
 }

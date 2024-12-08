@@ -24,6 +24,7 @@ class TerminalManager {
 
     // Write initial text
     this.terminal.write("Welcome to Friday IDE Terminal\\r\\n$ ");
+    this.terminal.onData((data) => this.terminal.write(data));
 
     // Add toggle button handler
     this.toggleButton.addEventListener("click", () => this.toggleTerminal());
