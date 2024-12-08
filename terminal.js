@@ -71,18 +71,25 @@ class TerminalManager {
       // Only initialize once
       if (this.isInitialized) return;
 
+      // Get saved theme or use default
+      let theme = 'vs-dark';
+      try {
+        theme = await window.electronAPI.store.get('theme') || 'vs-dark';
+        console.log('Loaded theme for terminal:', theme);
+      } catch (error) {
+        console.warn('Failed to load terminal theme:', error);
+      }
+
       // Create terminal instance if it doesn't exist
       if (!this.terminal) {
         this.terminal = new Terminal({
           cursorBlink: true,
-          theme: {
-            background: "#1e1e1e",
-            foreground: "#cccccc",
-          },
+          theme: window.terminalThemes[theme] || window.terminalThemes['vs-dark'],
           fontSize: 14,
-          fontFamily: "Consolas, monospace",
+          fontFamily: "'Fira Code', Consolas, 'Courier New', monospace",
           rows: 24,
-          cols: 80
+          cols: 80,
+          allowTransparency: true
         });
       }
 
@@ -278,6 +285,17 @@ class TerminalManager {
       this.isInitialized = false;
     } catch (error) {
       console.error('Failed to destroy terminal:', error);
+    }
+  }
+
+  updateTheme(themeName) {
+    if (this.terminal && window.terminalThemes[themeName]) {
+      try {
+        this.terminal.options.theme = window.terminalThemes[themeName];
+        console.log('Terminal theme updated to:', themeName);
+      } catch (error) {
+        console.error('Failed to update terminal theme:', error);
+      }
     }
   }
 }

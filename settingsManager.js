@@ -101,6 +101,11 @@ class SettingsManager {
                 window.fileExplorer.editor.updateOptions({ theme });
                 console.log('Updated editor theme:', theme);
             }
+
+            // Update terminal theme if terminal exists
+            if (window.terminalManager) {
+                window.terminalManager.updateTheme(theme);
+            }
         } catch (error) {
             console.error('Failed to change theme:', error);
             // Revert theme selection if there's an error
