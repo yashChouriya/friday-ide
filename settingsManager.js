@@ -5,20 +5,71 @@ class SettingsManager {
         this.closeButton = document.getElementById('close-settings');
         this.themeSelect = document.getElementById('theme-select');
         this.resetButton = document.getElementById('reset-all');
-        this.currentTheme = 'vs-dark'; // Default theme
+        
+        // Initialize theme manager
+        this.themeManager = new ThemeManager();
+        window.themeManager = this.themeManager; // Make it globally available
 
         this.initialize();
     }
 
     async initialize() {
-        // Set up event listeners first
+        // Set up event listeners
         this.setupEventListeners();
 
         // Wait for Monaco to be available
         await this.waitForMonaco();
         
+        // Register components with theme manager
+        this.registerComponents();
+        
         // Load and apply saved theme
         await this.loadAndApplyTheme();
+    }
+
+    registerComponents() {
+        // Register Monaco editor component
+        this.themeManager.registerComponent('editor', {
+            applyTheme: async (themeName) => {
+                if (window.fileExplorer?.editor) {
+                    window.fileExplorer.editor.updateOptions({ theme: themeName });
+                }
+            }
+        });
+
+        // Register terminal component
+        this.themeManager.registerComponent('terminal', {
+            applyTheme: async (themeName) => {
+                if (window.terminalManager) {
+                    window.terminalManager.updateTheme(themeName);
+                }
+            }
+        });
+
+        // Register UI component
+        this.themeManager.registerComponent('ui', {
+            applyTheme: async (themeName) => {
+                const colors = window.themeColors[themeName];
+                if (colors) {
+                    const root = document.documentElement;
+                    Object.entries(colors).forEach(([property, value]) => {
+                        root.style.setProperty(property, value);
+                    });
+                }
+            }
+        });
+
+        // Register welcome screen component
+        this.themeManager.registerComponent('welcome', {
+            applyTheme: async (themeName) => {
+                const welcomeScreen = document.getElementById('welcome-screen');
+                const colors = window.themeColors[themeName];
+                if (welcomeScreen && colors) {
+                    welcomeScreen.style.backgroundColor = colors['--bg-primary'];
+                    welcomeScreen.style.color = colors['--text-primary'];
+                }
+            }
+        });
     }
 
     setupEventListeners() {
@@ -45,46 +96,12 @@ class SettingsManager {
 
     async loadAndApplyTheme() {
         try {
-            console.log('Loading saved theme...');
-            const savedTheme = await window.electronAPI.store.get('theme');
-            console.log('Saved theme loaded:', savedTheme);
-            
-            const themeToApply = savedTheme || 'vs-dark';
-            this.currentTheme = themeToApply;
-            this.themeSelect.value = themeToApply;
-
-            // Apply theme to all components
-            await this.applyTheme(themeToApply);
-            this.updateUITheme(themeToApply);
-            
-            // Update editor if available
-            if (window.fileExplorer?.editor) {
-                window.fileExplorer.editor.updateOptions({ theme: themeToApply });
-            }
-            
-            // Update terminal if available
-            if (window.terminalManager) {
-                window.terminalManager.updateTheme(themeToApply);
-            }
-
-            // If no theme was saved, save the default
-            if (!savedTheme) {
-                await window.electronAPI.store.set('theme', 'vs-dark');
-                console.log('Default theme saved');
-            }
+            const savedTheme = await this.themeManager.loadSavedTheme();
+            this.themeSelect.value = savedTheme;
+            await this.themeManager.applyTheme(savedTheme);
         } catch (error) {
             console.error('Failed to load/apply theme:', error);
-            this.currentTheme = 'vs-dark';
-            this.themeSelect.value = 'vs-dark';
-            
-            // Apply default theme as fallback
-            try {
-                await this.applyTheme('vs-dark');
-                this.updateUITheme('vs-dark');
-                await window.electronAPI.store.set('theme', 'vs-dark');
-            } catch (e) {
-                console.error('Failed to apply fallback theme:', e);
-            }
+            // ThemeManager will handle fallback to default theme
         }
     }
 
@@ -108,60 +125,12 @@ class SettingsManager {
 
     async handleThemeChange(event) {
         const theme = event.target.value;
-        const previousTheme = this.currentTheme;
+        const success = await this.themeManager.applyTheme(theme);
         
-        try {
-            // Save theme first to ensure persistence
-            await window.electronAPI.store.set('theme', theme);
-            console.log('Theme saved:', theme);
-            
-            // Apply the theme
-            await this.applyTheme(theme);
-            this.currentTheme = theme;
-            
-            // Update UI elements
-            this.updateUITheme(theme);
-
-            // Update Monaco editor instance if it exists
-            if (window.fileExplorer?.editor) {
-                window.fileExplorer.editor.updateOptions({ theme });
-                console.log('Updated editor theme:', theme);
-            }
-
-            // Update terminal theme if terminal exists
-            if (window.terminalManager) {
-                window.terminalManager.updateTheme(theme);
-            }
-
-            // Double-check theme was saved
-            const savedTheme = await window.electronAPI.store.get('theme');
-            if (savedTheme !== theme) {
-                throw new Error('Theme save verification failed');
-            }
-        } catch (error) {
-            console.error('Failed to change theme:', error);
-            // Revert theme selection if there's an error
-            this.themeSelect.value = previousTheme;
-            this.currentTheme = previousTheme;
-            await this.applyTheme(previousTheme);
-            this.updateUITheme(previousTheme);
-            
-            // Revert editor theme
-            if (window.fileExplorer?.editor) {
-                window.fileExplorer.editor.updateOptions({ theme: previousTheme });
-            }
-
-            // Revert terminal theme
-            if (window.terminalManager) {
-                window.terminalManager.updateTheme(previousTheme);
-            }
-
-            // Ensure the previous theme is still saved
-            try {
-                await window.electronAPI.store.set('theme', previousTheme);
-            } catch (e) {
-                console.error('Failed to restore previous theme:', e);
-            }
+        if (!success) {
+            // ThemeManager will handle the error and revert to previous theme
+            // Just update the select element to match
+            this.themeSelect.value = this.themeManager.themeState.current;
         }
     }
 
@@ -234,22 +203,29 @@ class SettingsManager {
         
         if (confirmReset) {
             try {
+                // Clean up theme manager
+                await this.themeManager.cleanup();
+                
                 // Clear electron store
                 await window.electronAPI.store.clear();
                 
-                // Show loading message
+                // Show loading message with current theme colors
+                const currentTheme = this.themeManager.themeState.current || 'vs-dark';
+                const colors = window.themeColors[currentTheme];
+                
                 const loadingMessage = document.createElement('div');
                 loadingMessage.style.cssText = `
                     position: fixed;
                     top: 50%;
                     left: 50%;
                     transform: translate(-50%, -50%);
-                    background: rgba(0, 0, 0, 0.9);
-                    color: white;
+                    background: ${colors['--bg-primary']};
+                    color: ${colors['--text-primary']};
                     padding: 20px 40px;
                     border-radius: 8px;
                     font-size: 14px;
                     z-index: 10000;
+                    border: 1px solid ${colors['--border-color']};
                 `;
                 loadingMessage.textContent = 'Resetting application...';
                 document.body.appendChild(loadingMessage);
@@ -261,7 +237,12 @@ class SettingsManager {
                 await window.electronAPI.app.restart();
             } catch (error) {
                 console.error('Failed to reset settings:', error);
-                alert('Failed to reset settings. Please try again.');
+                await window.electronAPI.fileSystem.showMessage({
+                    type: 'error',
+                    title: 'Reset Failed',
+                    message: 'Failed to reset settings. Please try again.',
+                    buttons: ['OK']
+                });
             }
         }
     }
