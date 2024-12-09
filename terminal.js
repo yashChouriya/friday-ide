@@ -74,7 +74,7 @@ class TerminalManager {
       // Get saved theme or use default
       let theme = "vs-dark";
       try {
-        theme = (await window.electronAPI.store.get("theme")) || "vs-dark";
+        theme = (await window.electronAPI.store.get("selectedTheme")) || "vs-dark";
         console.log("Loaded theme for terminal:", theme);
       } catch (error) {
         console.warn("Failed to load terminal theme:", error);

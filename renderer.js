@@ -31,7 +31,7 @@ class FileExplorer {
       // Get saved theme before creating editor
       let theme = "vs-dark";
       try {
-        const savedTheme = await window.electronAPI.store.get("theme");
+        const savedTheme = await window.electronAPI.store.get("selectedTheme");
         if (savedTheme) {
           theme = savedTheme;
           console.log("Loaded saved theme for editor:", theme);
@@ -108,6 +108,7 @@ class FileExplorer {
           lastOpenedFile: this.lastOpenedFile,
           openedFiles: Array.from(this.openedFiles.keys()),
           expandedDirs: Array.from(this.expandedDirs),
+          selectedTheme: await await window.electronAPI.store.get("selectedTheme")
         };
         console.log("Saving state:", state);
         const result = await window.electronAPI.fileSystem.saveState(state);

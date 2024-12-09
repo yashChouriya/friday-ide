@@ -126,6 +126,7 @@ class SettingsManager {
     async handleThemeChange(event) {
         const theme = event.target.value;
         const success = await this.themeManager.applyTheme(theme);
+        await this.themeManager.saveTheme(theme)
         
         if (!success) {
             // ThemeManager will handle the error and revert to previous theme

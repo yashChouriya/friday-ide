@@ -32,6 +32,7 @@ async function initializeStore() {
       lastOpenedFile: null,
       expandedDirs: [],
       lastOpenedDir: null,
+      selectedTheme: 'vs-dark'
     },
   });
 }
@@ -236,13 +237,6 @@ ipcMain.handle("get-home-dir", () => {
 // Handle state loading
 ipcMain.handle("load-state", async () => {
   try {
-    const defaultState = {
-      lastOpenedFile: null,
-      expandedDirs: [],
-      lastOpenedDir: null,
-      openedFiles: [],
-    };
-
     // Ensure store is initialized
     if (!store) {
       await initializeStore();
@@ -253,6 +247,7 @@ ipcMain.handle("load-state", async () => {
       expandedDirs: store.get("expandedDirs", []),
       lastOpenedDir: store.get("lastOpenedDir", null),
       openedFiles: store.get("openedFiles", []),
+      selectedTheme:  store.get("selectedTheme", []),
     };
   } catch (error) {
     console.error("Error loading state:", error);
@@ -316,6 +311,7 @@ ipcMain.handle('terminal-destroy', (event, { id }) => {
 // Settings management IPC handlers
 ipcMain.handle('store:get', async (_, key) => {
   try {
+    console.log(`STORE GET [${key}]: `, store)
     return store.get(key);
   } catch (error) {
     console.error('Error getting store value:', error);
@@ -326,6 +322,7 @@ ipcMain.handle('store:get', async (_, key) => {
 ipcMain.handle('store:set', async (_, key, value) => {
   try {
     store.set(key, value);
+    console.log("STORE SET: ", store)
     return true;
   } catch (error) {
     console.error('Error setting store value:', error);

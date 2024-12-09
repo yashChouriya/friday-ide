@@ -155,7 +155,7 @@
 
         // Load saved theme if available
         try {
-            const savedTheme = await window.electronAPI.store.get('theme') || 'vs-dark';
+            const savedTheme = await window.electronAPI.store.get('selectedTheme') || 'vs-dark';
             monaco.editor.setTheme(savedTheme);
         } catch (error) {
             console.warn('Failed to load saved theme:', error);

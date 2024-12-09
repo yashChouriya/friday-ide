@@ -153,7 +153,8 @@ class ThemeManager {
 
     async saveTheme(themeName) {
         try {
-            await window.electronAPI.store.set('theme', themeName);
+            await window.electronAPI.store.set('selectedTheme', themeName);
+            console.log(`THEME '${themeName}' SAVED SUCCESSFULLY`)
         } catch (error) {
             console.error('Failed to save theme:', error);
             throw new Error('Failed to persist theme setting');
@@ -162,7 +163,8 @@ class ThemeManager {
 
     async loadSavedTheme() {
         try {
-            const savedTheme = await window.electronAPI.store.get('theme');
+            const savedTheme = await window.electronAPI.store.get('selectedTheme');
+            console.log("LOAD THEME FUNCTION TRIGGERED!",savedTheme)
             return savedTheme || 'vs-dark';
         } catch (error) {
             console.error('Failed to load saved theme:', error);
