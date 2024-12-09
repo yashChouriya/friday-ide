@@ -42,6 +42,7 @@ function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    icon: path.join(__dirname, 'icons/friday-ide-code.svg'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

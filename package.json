@@ -1,23 +1,58 @@
 {
   "name": "friday-ide",
+  "description":"A modern, lightweight Integrated Development Environment (IDE) built with Electron and Monaco Editor. Friday IDE provides a powerful, intuitive coding experience with a sleek VS Code-inspired interface, making it perfect for developers who want a fast, customizable editor for their projects.",
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
     "start": "DISPLAY=:1 ELECTRON_DISABLE_SANDBOX=true electron .",
     "dev": "DISPLAY=:1 ELECTRON_DISABLE_SANDBOX=true nodemon --watch . --exec electron .",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "rebuild": "electron-rebuild"
+    "rebuild": "electron-rebuild",
+    "build": "electron-builder",
+    "build:deb": "electron-builder --linux deb",
+    "pack": "electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "build": {
+    "appId": "com.friday.ide",
+    "productName": "Friday IDE",
+    "directories": {
+      "output": "dist"
+    },
+    "linux": {
+      "target": [
+        "deb"
+      ],
+      "icon": "icons/friday-ide-code.svg",
+      "category": "Development",
+      "desktop": {
+        "Name": "Friday IDE",
+        "Comment": "Professional Code Editor",
+        "Categories": "Development;IDE;TextEditor",
+        "MimeType": "text/plain;text/x-javascript;text/javascript;text/x-python;text/x-java;text/x-c;text/x-c++;text/x-ruby"
+      },
+      "maintainer": "Friday IDE Team",
+      "vendor": "Friday IDE"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "icons/friday-ide-code.svg"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "icons/friday-ide-code.svg"
+    }
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "devDependencies": {
     "@electron/rebuild": "^3.7.1",
     "@xterm/addon-clipboard": "^0.1.0",
     "@xterm/addon-search": "^0.15.0",
     "concurrently": "^9.1.0",
     "electron": "31.0.0",
+    "electron-builder": "^25.1.8",
     "electron-reload": "^2.0.0-alpha.1",
     "electron-store": "7.0.3",
     "nodemon": "^3.1.7",
