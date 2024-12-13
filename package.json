@@ -1,6 +1,6 @@
 {
   "name": "friday-ide",
-  "description":"A modern, lightweight Integrated Development Environment (IDE) built with Electron and Monaco Editor. Friday IDE provides a powerful, intuitive coding experience with a sleek VS Code-inspired interface, making it perfect for developers who want a fast, customizable editor for their projects.",
+  "description": "A modern, lightweight Integrated Development Environment (IDE) built with Electron and Monaco Editor. Friday IDE provides a powerful, intuitive coding experience with a sleek VS Code-inspired interface, making it perfect for developers who want a fast, customizable editor for their projects.",
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
@@ -63,6 +63,8 @@
     "@xterm/addon-web-links": "^0.11.0",
     "@xterm/xterm": "^5.5.0",
     "monaco-editor": "^0.52.0",
-    "node-pty": "^1.0.0"
+    "node-pty": "^1.0.0",
+    "reconnecting-websocket": "^4.4.0",
+    "uuid": "^9.0.1"
   }
 }
