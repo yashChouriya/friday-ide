@@ -9,14 +9,12 @@ class ChatManager {
 
   setupWebSocket() {
     // Create WebSocket connection
-    this.ws = window.electronAPI.webSocket.create(
-      "ws://localhost:6661/ws",
-      [],
-      {
-        maxRetries: 10,
-        reconnectionDelayGrowFactor: 1.3,
-      }
-    );
+    this.ws = new window.ReconnectingWebSocket("ws://localhost:6661/ws", null, {
+      debug: true,
+      reconnectInterval: 4000,
+    });
+
+    console.info("Creating WebSocket wrapper", this.ws);
 
     this.ws.addEventListener("open", () => {
       console.log("WebSocket Connected");
@@ -24,6 +22,7 @@ class ChatManager {
     });
 
     this.ws.addEventListener("message", (event) => {
+      console.log("DATA FROM SERVER: ", event);
       const response = JSON.parse(event.data);
       this.handleWebSocketMessage(response);
     });
@@ -36,6 +35,13 @@ class ChatManager {
     this.ws.addEventListener("error", (error) => {
       console.error("WebSocket Error:", error);
     });
+
+    // if (this.ws?.ws) {
+    //   this.ws.ws.onmessage = (e) => {
+    //     console.log("CUSTOM MESSAGE EVENT: ", e);
+    //   };
+    // }
+    console.log("WS: ", this.ws.ws);
   }
 
   setupUI() {
@@ -98,6 +104,7 @@ class ChatManager {
 
     // Send message
     this.sendButton.addEventListener("click", () => {
+      console.log("SEND BUTTON TRIGGERED!");
       this.sendMessage();
     });
 
@@ -170,6 +177,8 @@ class ChatManager {
     // Clear input
     this.inputField.value = "";
 
+    console.log("INPUT FIELD VALUE: ", content);
+
     // Send to WebSocket
     const command = {
       command: "message",
@@ -202,22 +211,26 @@ class ChatManager {
     }
   }
 
-  handleToolResult(data) {
+  handleToolResult(result) {
     let content = "";
-    if (data.result.output) {
-      content += data.result.output;
-    }
-    if (data.result.error) {
-      content += `\nError: ${data.result.error}`;
-    }
-    if (data.result.base64_image) {
+    
+    if (result?.base64_image) {
       // Add image to message
       const img = document.createElement("img");
-      img.src = `data:image/png;base64,${data.result.base64_image}`;
+      img.src = `data:image/png;base64,${result.base64_image}`;
+      console.log("src", img.src);
       img.className = "chat-image";
       this.addMessage("tool", content, img);
       return;
     }
+
+    if (result?.output) {
+      content += result.output;
+    }
+    if (result?.error) {
+      content += `\nError: ${result.error}`;
+    }
+
     if (content) {
       this.addMessage("tool", content);
     }

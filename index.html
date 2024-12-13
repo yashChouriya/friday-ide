@@ -13,7 +13,13 @@
     <script src="node_modules/@xterm/addon-web-links/lib/addon-web-links.js"></script>
     <script src="node_modules/@xterm/addon-search/lib/addon-search.js"></script>
     <script src="node_modules/@xterm/addon-clipboard/lib/addon-clipboard.js"></script>
-    
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js"
+      integrity="sha512-SxQulwFs2B38bmUJtBSo9tD07MDrtCbY8me3AOZ14tRknCPTeMDLvCQV4ekhs8R0o9QPnW5HQanKfveexVcwLA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
     <script src="terminal.js"></script>
   </head>
   <body>
@@ -27,15 +33,23 @@
             </button>
           </div>
           <div class="activity-bar-bottom">
-            <button id="toggle-terminal" class="activity-button" title="Terminal">
+            <button
+              id="toggle-terminal"
+              class="activity-button"
+              title="Terminal"
+            >
               <i class="fas fa-terminal"></i>
             </button>
-            <button id="toggle-settings" class="activity-button" title="Settings">
+            <button
+              id="toggle-settings"
+              class="activity-button"
+              title="Settings"
+            >
               <i class="fas fa-cog"></i>
             </button>
           </div>
         </div>
-        
+
         <!-- Sidebar Panel -->
         <div class="sidebar-panel">
           <div class="file-explorer">
@@ -52,7 +66,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="editor">
         <div class="editor-tabs">
           <div class="tabs-container"></div>
@@ -114,7 +128,10 @@
                 <i class="fas fa-trash-alt"></i>
                 Reset All Settings
               </button>
-              <p class="setting-description">This will reset all settings to their default values and clear stored data.</p>
+              <p class="setting-description">
+                This will reset all settings to their default values and clear
+                stored data.
+              </p>
             </div>
           </div>
         </div>
@@ -128,7 +145,6 @@
       // Configure AMD loader for Monaco
       require.config({
         paths: { vs: monacoBase + "/vs" },
-        
       });
 
       // Configure Monaco's environment
@@ -144,22 +160,23 @@
 
         // Initialize themes
         if (window.editorThemes) {
-            Object.entries(window.editorThemes).forEach(([name, theme]) => {
-                try {
-                    monaco.editor.defineTheme(name, theme);
-                } catch (e) {
-                    console.warn('Theme already defined:', name);
-                }
-            });
+          Object.entries(window.editorThemes).forEach(([name, theme]) => {
+            try {
+              monaco.editor.defineTheme(name, theme);
+            } catch (e) {
+              console.warn("Theme already defined:", name);
+            }
+          });
         }
 
         // Load saved theme if available
         try {
-            const savedTheme = await window.electronAPI.store.get('selectedTheme') || 'vs-dark';
-            monaco.editor.setTheme(savedTheme);
+          const savedTheme =
+            (await window.electronAPI.store.get("selectedTheme")) || "vs-dark";
+          monaco.editor.setTheme(savedTheme);
         } catch (error) {
-            console.warn('Failed to load saved theme:', error);
-            monaco.editor.setTheme('vs-dark');
+          console.warn("Failed to load saved theme:", error);
+          monaco.editor.setTheme("vs-dark");
         }
 
         const script = document.createElement("script");
@@ -181,7 +198,7 @@
       window.sidebarManager.restoreState();
 
       // Initialize managers after DOM is fully loaded
-      document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener("DOMContentLoaded", () => {
         window.welcomeManager = new WelcomeManager();
         window.settingsManager = new SettingsManager();
         window.chatManager = new ChatManager();
