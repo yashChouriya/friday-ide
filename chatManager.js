@@ -1,4 +1,4 @@
-class ChatManager {
+window.ChatManager = class ChatManager {
   constructor() {
     this.setupWebSocket();
     this.setupUI();
@@ -8,13 +8,10 @@ class ChatManager {
   }
 
   setupWebSocket() {
-    // Create WebSocket connection
     this.ws = new window.ReconnectingWebSocket("ws://localhost:6661/ws", null, {
       debug: true,
       reconnectInterval: 4000,
     });
-
-    console.info("Creating WebSocket wrapper", this.ws);
 
     this.ws.addEventListener("open", () => {
       console.log("WebSocket Connected");
@@ -35,13 +32,6 @@ class ChatManager {
     this.ws.addEventListener("error", (error) => {
       console.error("WebSocket Error:", error);
     });
-
-    // if (this.ws?.ws) {
-    //   this.ws.ws.onmessage = (e) => {
-    //     console.log("CUSTOM MESSAGE EVENT: ", e);
-    //   };
-    // }
-    console.log("WS: ", this.ws.ws);
   }
 
   setupUI() {
@@ -49,20 +39,22 @@ class ChatManager {
     this.chatPanel = document.createElement("div");
     this.chatPanel.className = "chat-panel hidden";
     this.chatPanel.innerHTML = `
-            <div class="chat-panel-header">
-                <h3>AI Assistant</h3>
-                <button class="close-chat-button">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="chat-messages"></div>
-            <div class="chat-input-container">
-                <textarea class="chat-input" placeholder="Ask me anything..." rows="3"></textarea>
-                <button class="send-message-button">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        `;
+      <div class="chat-panel-header">
+        <h3>Friday AI Assistant</h3>
+        <button class="close-chat-button">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="chat-messages"></div>
+      <div class="chat-input-container">
+        <textarea class="chat-input" placeholder="Ask me anything..." rows="3"></textarea>
+        <button class="send-message-button">
+          <i class="fas fa-paper-plane"></i>
+          <span>Send</span>
+          <div class="loading-spinner"></div>
+        </button>
+      </div>
+    `;
 
     // Add resize handle
     const resizeHandle = document.createElement("div");
@@ -104,7 +96,6 @@ class ChatManager {
 
     // Send message
     this.sendButton.addEventListener("click", () => {
-      console.log("SEND BUTTON TRIGGERED!");
       this.sendMessage();
     });
 
@@ -128,13 +119,11 @@ class ChatManager {
         document.defaultView.getComputedStyle(this.chatPanel).width,
         10
       );
-
       document.documentElement.classList.add("resizing");
     });
 
     document.addEventListener("mousemove", (e) => {
       if (!isResizing) return;
-
       const width = startWidth - (e.pageX - startX);
       if (width > 200 && width < window.innerWidth * 0.8) {
         this.chatPanel.style.width = width + "px";
@@ -171,13 +160,15 @@ class ChatManager {
     const content = this.inputField.value.trim();
     if (!content || !this.sessionId) return;
 
+    // Show loading state
+    this.sendButton.classList.add('loading');
+    this.sendButton.disabled = true;
+
     // Add user message to UI
     this.addMessage("user", content);
 
     // Clear input
     this.inputField.value = "";
-
-    console.log("INPUT FIELD VALUE: ", content);
 
     // Send to WebSocket
     const command = {
@@ -191,10 +182,16 @@ class ChatManager {
     } catch (error) {
       console.error("Error sending message:", error);
       this.addSystemMessage("Failed to send message");
+      this.sendButton.classList.remove('loading');
+      this.sendButton.disabled = false;
     }
   }
 
   handleWebSocketMessage(response) {
+    // Reset loading state
+    this.sendButton.classList.remove('loading');
+    this.sendButton.disabled = false;
+
     if (response.status === "connected" && response.session_id) {
       this.sessionId = response.session_id;
       this.isConnected = true;
@@ -218,7 +215,6 @@ class ChatManager {
       // Add image to message
       const img = document.createElement("img");
       img.src = `data:image/png;base64,${result.base64_image}`;
-      console.log("src", img.src);
       img.className = "chat-image";
       this.addMessage("tool", content, img);
       return;
@@ -248,15 +244,65 @@ class ChatManager {
     const contentDiv = document.createElement("div");
     contentDiv.className = "message-content";
 
-    // Add text content
     if (content) {
-      const textDiv = document.createElement("div");
-      textDiv.className = "message-text";
-      textDiv.textContent = content;
-      contentDiv.appendChild(textDiv);
+      try {
+        const textDiv = document.createElement("div");
+        textDiv.className = "message-text markdown";
+        
+        // Handle different message types
+        if (type === "user") {
+          // For user messages, just escape HTML and preserve line breaks
+          textDiv.innerHTML = this.escapeHTML(content).replace(/\n/g, '<br>');
+        } else {
+          // For other messages, try to use markdown if available
+          if (typeof window.md !== 'undefined' && typeof window.md.render === 'function') {
+            console.log('Rendering markdown for message:', content.substring(0, 100) + '...');
+            try {
+              // Render markdown using markdown-it
+              const rendered = window.md.render(content);
+              console.log('Markdown rendered successfully:', rendered.substring(0, 100) + '...');
+              textDiv.innerHTML = rendered;
+
+              // Apply syntax highlighting to any code blocks
+              if (window.hljs) {
+                textDiv.querySelectorAll('pre code').forEach((block) => {
+                  window.hljs.highlightElement(block);
+                });
+              }
+            } catch (markdownError) {
+              console.error('Error rendering markdown:', markdownError);
+              textDiv.innerHTML = this.escapeHTML(content).replace(/\n/g, '<br>');
+            }
+          } else {
+            console.warn('Markdown-it not available, falling back to plain text');
+            textDiv.innerHTML = this.escapeHTML(content).replace(/\n/g, '<br>');
+          }
+        }
+
+        // Make links open in new tab
+        textDiv.querySelectorAll('a').forEach(link => {
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+        });
+
+        // Apply syntax highlighting to code blocks
+        if (window.hljs) {
+          textDiv.querySelectorAll('pre code').forEach((block) => {
+            window.hljs.highlightBlock(block);
+          });
+        }
+
+        contentDiv.appendChild(textDiv);
+      } catch (error) {
+        console.error('Error rendering message:', error);
+        // Fallback to plain text
+        const textDiv = document.createElement("div");
+        textDiv.className = "message-text";
+        textDiv.textContent = content;
+        contentDiv.appendChild(textDiv);
+      }
     }
 
-    // Add extra element (like images)
     if (extraElement) {
       contentDiv.appendChild(extraElement);
     }
@@ -264,6 +310,12 @@ class ChatManager {
     messageDiv.appendChild(contentDiv);
     this.messagesContainer.appendChild(messageDiv);
     this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+  }
+
+  escapeHTML(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   addSystemMessage(content) {

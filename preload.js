@@ -81,29 +81,4 @@ contextBridge.exposeInMainWorld("electronAPI", {
       }
     },
   },
-  // WebSocket functionality
-  webSocket: {
-    create: (url, protocols, options) => {
-      const ws = new ReconnectingWebSocket(url, null, {
-        debug: true,
-        reconnectInterval: 4000,
-      });
-      console.info("Creating WebSocket wrapper");
-
-      ws.addEventListener("message", (e) => {
-        console.log("MESSAGE EVENT FROM THE PRELOAD FILE: ", e);
-      });
-
-      return {
-        send: (data) => ws.send(data),
-        onOpen: (callback) => ws.addEventListener("open", callback),
-        onMessage: (callback) => ws.addEventListener("message", callback),
-        onClose: (callback) => ws.addEventListener("close", callback),
-        onError: (callback) => ws.addEventListener("error", callback),
-        // Add a close method if needed
-        close: () => ws.close(),
-        ws,
-      };
-    },
-  },
 });

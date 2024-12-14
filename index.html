@@ -13,6 +13,7 @@
     <script src="node_modules/@xterm/addon-web-links/lib/addon-web-links.js"></script>
     <script src="node_modules/@xterm/addon-search/lib/addon-search.js"></script>
     <script src="node_modules/@xterm/addon-clipboard/lib/addon-clipboard.js"></script>
+    <script src="node_modules/markdown-it/lib/index.mjs"></script>
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js"
       integrity="sha512-SxQulwFs2B38bmUJtBSo9tD07MDrtCbY8me3AOZ14tRknCPTeMDLvCQV4ekhs8R0o9QPnW5HQanKfveexVcwLA=="
@@ -192,6 +193,7 @@
     <script src="settingsManager.js"></script>
     <script src="chatManager.js"></script>
     <script>
+
       // Initialize sidebar manager
       window.sidebarManager = new SidebarManager();
       // Restore saved state
@@ -201,7 +203,43 @@
       document.addEventListener("DOMContentLoaded", () => {
         window.welcomeManager = new WelcomeManager();
         window.settingsManager = new SettingsManager();
-        window.chatManager = new ChatManager();
+
+        // Initialize markdown-it
+        if (typeof markdownit !== "undefined") {
+          console.log("Markdown-it library loaded");
+          // Initialize markdown-it with options and highlight.js integration
+          window.md = markdownit({
+            html: true,
+            linkify: true,
+            breaks: true,
+            highlight: function (str, lang) {
+              if (lang && window.hljs) {
+                try {
+                  return window.hljs.highlight(str, { language: lang }).value;
+                } catch (err) {
+                  console.error("Highlight error:", err);
+                }
+              }
+              return window.hljs.highlightAuto(str).value;
+            },
+          });
+          console.log("Markdown-it initialized:", !!window.md);
+        } else {
+          console.warn("Markdown-it library not loaded");
+        }
+
+        // Initialize highlight.js
+        if (window.hljs) {
+          console.log("Highlight.js loaded:", window.hljs.versionString);
+          window.hljs.configure({
+            languages: ["javascript", "python", "bash", "json", "html", "css"],
+          });
+        } else {
+          console.warn("Highlight.js not loaded");
+        }
+
+        // Initialize chat manager
+        window.chatManager = new window.ChatManager();
       });
     </script>
   </body>
