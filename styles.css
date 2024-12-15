@@ -565,10 +565,18 @@ body {
   resize: vertical;
   overflow: hidden;
   box-shadow: 0 -2px 6px -2px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, opacity 0.3s ease, height 0.3s ease;
+  transform-origin: bottom;
+  opacity: 1;
 }
 
 #terminal.hidden {
-  display: none;
+  transform: translateY(100%);
+  opacity: 0;
+  height: 0;
+  padding: 0;
+  border: none;
+  pointer-events: none;
 }
 
 /* Welcome Screen */
@@ -708,13 +716,19 @@ body {
   cursor: row-resize;
   z-index: 11;
   opacity: 0.6;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease, opacity 0.3s ease;
+  box-shadow: 0 0 4px var(--button-bg);
 }
 
 #terminal:hover::before {
   opacity: 1;
   height: 3px;
   top: -1.5px;
+  box-shadow: 0 0 8px var(--button-bg);
+}
+
+#terminal.hidden::before {
+  opacity: 0;
 }
 
 /* Custom scrollbar for terminal */
@@ -751,15 +765,26 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .toggle-terminal:hover {
   background: #444;
   color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .toggle-terminal.active {
-  color: #0098fa;
+  color: var(--button-bg);
+  background: var(--bg-hover);
+  box-shadow: 0 0 8px var(--button-bg);
+}
+
+.toggle-terminal.active:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px var(--button-bg);
 }
 
 /* Settings Popup */
