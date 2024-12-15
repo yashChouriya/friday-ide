@@ -4,15 +4,43 @@ window.terminalManager = null;
 
 class FileExplorer {
   constructor() {
+    // Ensure Monaco is available
+    if (typeof window.monaco === 'undefined') {
+      console.error('Monaco is not loaded');
+      return;
+    }
+
+    console.log('Initializing FileExplorer...');
+    
     this.currentPath = "";
     this.fileTree = document.getElementById("file-tree");
     this.editorContainer = document.getElementById("monaco-editor");
     this.tabsContainer = document.querySelector(".tabs-container");
+    
+    if (!this.fileTree || !this.editorContainer || !this.tabsContainer) {
+      console.error('Required DOM elements not found');
+      return;
+    }
+
     this.expandedDirs = new Set();
     this.lastOpenedFile = null;
     this.editor = null;
     this.openedFiles = new Map(); // Map<filePath, {model, viewState}>
-    this.initialize();
+    
+    // Initialize async
+    this.initializeAsync().catch(error => {
+      console.error('Error during initialization:', error);
+    });
+  }
+
+  async initializeAsync() {
+    try {
+      await this.initialize();
+      console.log('FileExplorer initialization complete');
+    } catch (error) {
+      console.error('FileExplorer initialization failed:', error);
+      throw error;
+    }
   }
 
   async initialize() {
@@ -40,42 +68,67 @@ class FileExplorer {
         console.warn("Failed to load theme for editor:", error);
       }
 
-      // Initialize Monaco Editor with saved theme
-      this.editor = monaco.editor.create(this.editorContainer, {
-        value: "", // Empty initial content
-        language: "plaintext",
-        theme: theme,
-        suggest: {
-          snippetsPreventQuickSuggestions: false,
-        },
-        automaticLayout: true,
-        minimap: {
-          enabled: true,
-        },
-        scrollBeyondLastLine: false,
-        renderWhitespace: "selection",
-        fontFamily: "'Fira Code', 'Consolas', 'Monaco', monospace",
-        fontSize: 14,
-        lineNumbers: "on",
-        roundedSelection: false,
+      try {
+        // Ensure monaco is available
+        if (typeof monaco === 'undefined' || !monaco.editor) {
+          throw new Error('Monaco editor not properly loaded');
+        }
+
+        console.log('Creating Monaco editor instance...');
         
-        scrollbar: {
-          useShadows: true,
-          verticalHasArrows: false,
-          horizontalHasArrows: false,
-          vertical: "visible",
-          horizontal: "visible",
-          verticalScrollbarSize: 10,
-          horizontalScrollbarSize: 10,
-          arrowSize: 30,
-        },
-      });
+        // Initialize Monaco Editor with saved theme
+        this.editor = monaco.editor.create(this.editorContainer, {
+          value: "", // Empty initial content
+          language: "plaintext",
+          theme: theme,
+          suggest: {
+            snippetsPreventQuickSuggestions: false,
+          },
+          automaticLayout: true,
+          minimap: {
+            enabled: true,
+          },
+          scrollBeyondLastLine: false,
+          renderWhitespace: "selection",
+          fontFamily: "'Fira Code', 'Consolas', 'Monaco', monospace",
+          fontSize: 14,
+          lineNumbers: "on",
+          roundedSelection: false,
+          
+          scrollbar: {
+            useShadows: true,
+            verticalHasArrows: false,
+            horizontalHasArrows: false,
+            vertical: "visible",
+            horizontal: "visible",
+            verticalScrollbarSize: 10,
+            horizontalScrollbarSize: 10,
+            arrowSize: 30,
+          },
+        });
 
-      // Add window resize handler
-      window.addEventListener("resize", () => {
-        this.editor.layout();
-      });
+        // Wait a bit to ensure editor is fully initialized
+        await new Promise(resolve => setTimeout(resolve, 100));
 
+        // Add window resize handler
+        window.addEventListener("resize", () => {
+          if (this.editor) {
+            this.editor.layout();
+          }
+        });
+
+        // Only setup link providers if editor is properly initialized
+        if (this.editor) {
+          console.log('Editor initialized, setting up link providers...');
+          await this.setupLinkProviders();
+        } else {
+          console.warn('Editor not properly initialized');
+        }
+
+      } catch (error) {
+        console.error('Error initializing Monaco editor:', error);
+      }
+      
       resolve();
     });
   }
@@ -323,29 +376,57 @@ class FileExplorer {
   }
 
   async closeFile(filePath) {
-    const fileData = this.openedFiles.get(filePath);
-    if (fileData) {
-      fileData.model.dispose();
-      this.openedFiles.delete(filePath);
+    try {
+      const fileData = this.openedFiles.get(filePath);
+      if (fileData) {
+        // Clear any markers before disposing
+        monaco.editor.setModelMarkers(fileData.model, 'links', []);
+        
+        // Dispose of any event listeners or decorations
+        if (fileData.disposables) {
+          fileData.disposables.forEach(d => {
+            try {
+              d.dispose();
+            } catch (e) {
+              console.warn('Error disposing of editor decoration:', e);
+            }
+          });
+        }
 
-      // Remove tab
-      const tab = this.tabsContainer.querySelector(`[data-path="${filePath}"]`);
-      if (tab) {
-        tab.remove();
-      }
-
-      // If this was the active file, switch to another file
-      if (this.lastOpenedFile === filePath) {
-        const remainingFiles = Array.from(this.openedFiles.keys());
-        if (remainingFiles.length > 0) {
-          await this.switchToFile(remainingFiles[remainingFiles.length - 1]);
-        } else {
-          this.lastOpenedFile = null;
+        // Set editor model to null before disposing if this is the active file
+        if (this.lastOpenedFile === filePath) {
           this.editor.setModel(null);
         }
+
+        // Dispose of the model
+        try {
+          fileData.model.dispose();
+        } catch (e) {
+          console.warn('Error disposing model:', e);
+        }
+
+        this.openedFiles.delete(filePath);
+
+        // Remove tab
+        const tab = this.tabsContainer.querySelector(`[data-path="${filePath}"]`);
+        if (tab) {
+          tab.remove();
+        }
+
+        // If this was the active file, switch to another file
+        if (this.lastOpenedFile === filePath) {
+          const remainingFiles = Array.from(this.openedFiles.keys());
+          if (remainingFiles.length > 0) {
+            await this.switchToFile(remainingFiles[remainingFiles.length - 1]);
+          } else {
+            this.lastOpenedFile = null;
+          }
+        }
       }
+      await this.saveState();
+    } catch (error) {
+      console.error('Error closing file:', error);
     }
-    await this.saveState();
   }
 
   async switchToFile(filePath) {
@@ -401,6 +482,234 @@ class FileExplorer {
         }
       }
     });
+  }
+
+  async setupLinkProviders() {
+    try {
+      if (!this.editor) {
+        console.warn('Editor not available for link providers');
+        return;
+      }
+
+      if (typeof monaco === 'undefined' || !monaco.languages) {
+        console.warn('Monaco languages API not available');
+        return;
+      }
+
+      console.log('Setting up link providers...');
+
+      // Define provider registration function
+      const registerProvider = (language, regex, prefixLength = 0) => {
+        try {
+          monaco.languages.registerLinkProvider(language, {
+            provideLinks: (model) => {
+              try {
+                const links = [];
+                const text = model.getValue();
+                let match;
+
+                while ((match = regex.exec(text))) {
+                  const path = match[2];
+                  if (!path) continue;
+
+                  try {
+                    const startPos = model.getPositionAt(match.index + match[1].length + prefixLength);
+                    const endPos = model.getPositionAt(match.index + match[1].length + prefixLength + path.length);
+
+                    if (startPos && endPos) {
+                      links.push({
+                        range: {
+                          startLineNumber: startPos.lineNumber,
+                          startColumn: startPos.column,
+                          endLineNumber: endPos.lineNumber,
+                          endColumn: endPos.column
+                        },
+                        url: path,
+                        tooltip: 'Follow link (Ctrl+Click)'
+                      });
+                    }
+                  } catch (error) {
+                    console.error('Error creating link range:', error);
+                  }
+                }
+                return { links };
+              } catch (error) {
+                console.error('Error in provideLinks:', error);
+                return { links: [] };
+              }
+            }
+          });
+          console.log(`Registered link provider for ${language}`);
+        } catch (error) {
+          console.error(`Error registering ${language} provider:`, error);
+        }
+      };
+
+      // Register HTML provider
+      const htmlRegex = /(src|href)=["']([^"']+)["']/g;
+      registerProvider('html', htmlRegex, 2); // +2 for =" characters
+
+      // Register JavaScript provider
+      const jsRegex = /(require\s*\(\s*["']|from\s+["']|import\s+["'])([^"']+)["']/g;
+      registerProvider('javascript', jsRegex);
+
+      console.log('Link providers setup completed');
+    } catch (error) {
+      console.error('Error in setupLinkProviders:', error);
+    }
+
+    // Add click handler for links
+    console.log('Setting up mouse handler...');
+    try {
+      const editor = this.editor; // Store reference to avoid any potential context issues
+      if (!editor) {
+        console.warn('Editor not available for mouse handler');
+        return;
+      }
+
+      editor.onMouseDown((e) => {
+        try {
+          if (e.event.ctrlKey) {
+            const linkDetail = editor.getModel()?.getWordAtPosition(e.target.position);
+            console.log('Position:', e.target.position, 'Word detail:', linkDetail);
+            
+            // Get the line of text where the click occurred
+            const lineContent = editor.getModel()?.getLineContent(e.target.position.lineNumber);
+            console.log('Line content:', lineContent);
+
+            // Try to extract the path from the line
+            let path = null;
+            if (lineContent) {
+              // For HTML src/href attributes
+              const srcMatch = lineContent.match(/(src|href)=["']([^"']+)["']/);
+              if (srcMatch && this.isPositionInMatch(e.target.position.column, srcMatch.index + srcMatch[1].length + 2, srcMatch[2].length)) {
+                path = srcMatch[2];
+              } else {
+                // For JavaScript requires/imports
+                const importMatch = lineContent.match(/(require\s*\(\s*["']|from\s+["']|import\s+["'])([^"']+)["']/);
+                if (importMatch && this.isPositionInMatch(e.target.position.column, importMatch.index + importMatch[1].length, importMatch[2].length)) {
+                  path = importMatch[2];
+                }
+              }
+            }
+
+            if (path) {
+              console.log('Found path:', path);
+              this.handleLinkClick(path).catch(error => {
+                console.error('Error handling link click:', error);
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error in mouse down handler:', error);
+        }
+      });
+      console.log('Mouse handler setup complete');
+    } catch (error) {
+      console.error('Error setting up mouse down handler:', error);
+    }
+  }
+
+  isPositionInMatch(column, matchStart, matchLength) {
+    // Convert from 1-based to 0-based indexing for column
+    const col0 = column - 1;
+    return col0 >= matchStart && col0 < (matchStart + matchLength);
+  }
+
+  async handleLinkClick(path) {
+    try {
+      console.log('Handling link click for path:', path);
+      
+      if (!this.lastOpenedFile) {
+        console.warn('No file currently open');
+        return;
+      }
+
+      // Get current file's directory
+      const currentDir = window.electronAPI.path.dirname(this.lastOpenedFile);
+      console.log('Current directory:', currentDir);
+      
+      // Create an array of possible paths to try
+      const pathsToTry = [];
+      
+      if (path.startsWith('./') || path.startsWith('../')) {
+        // Relative path
+        pathsToTry.push(window.electronAPI.path.join(currentDir, path));
+      } else if (path.startsWith('/')) {
+        // Absolute path from project root
+        pathsToTry.push(window.electronAPI.path.join(this.currentPath, path));
+      } else {
+        // Try multiple possible locations
+        pathsToTry.push(
+          window.electronAPI.path.join(currentDir, path),                    // Relative to current file
+          window.electronAPI.path.join(this.currentPath, path),             // Relative to project root
+          window.electronAPI.path.join(this.currentPath, 'node_modules', path) // In node_modules
+        );
+      }
+
+      console.log('Paths to try:', pathsToTry);
+      let resolvedPath = null;
+
+      // Try each path with each possible extension
+      for (const basePath of pathsToTry) {
+        // Try without extension first
+        if (await window.electronAPI.fileSystem.exists(basePath)) {
+          resolvedPath = basePath;
+          break;
+        }
+
+        // Try with common extensions
+        const extensions = ['.js', '.jsx', '.ts', '.tsx', '.json', '.html', '.css'];
+        for (const ext of extensions) {
+          const pathWithExt = basePath + ext;
+          console.log('Trying path:', pathWithExt);
+          if (await window.electronAPI.fileSystem.exists(pathWithExt)) {
+            resolvedPath = pathWithExt;
+            break;
+          }
+        }
+
+        if (resolvedPath) break;
+      }
+
+      if (resolvedPath) {
+        console.log('Loading resolved path:', resolvedPath);
+        // Load the file in a new tab
+        await this.loadFile(resolvedPath, true);
+        
+        // Show success message
+        monaco.editor.setModelMarkers(this.editor.getModel(), 'links', [{
+          message: `Opened file: ${resolvedPath}`,
+          severity: monaco.MarkerSeverity.Info,
+          startLineNumber: 1,
+          startColumn: 1,
+          endLineNumber: 1,
+          endColumn: 1
+        }]);
+      } else {
+        console.error('File not found:', path);
+        // Show error using Monaco's markers
+        monaco.editor.setModelMarkers(this.editor.getModel(), 'links', [{
+          message: `File not found: ${path}`,
+          severity: monaco.MarkerSeverity.Error,
+          startLineNumber: this.editor.getPosition().lineNumber,
+          startColumn: 1,
+          endLineNumber: this.editor.getPosition().lineNumber,
+          endColumn: 1
+        }]);
+      }
+    } catch (error) {
+      console.error('Error handling link click:', error);
+      // Show error using Monaco's markers
+      monaco.editor.setModelMarkers(this.editor.getModel(), 'links', [{
+        message: `Error: ${error.message}`,
+        severity: monaco.MarkerSeverity.Error,
+        startLineNumber: this.editor.getPosition().lineNumber,
+        startColumn: 1,
+        endLineNumber: this.editor.getPosition().lineNumber,
+        endColumn: 1
+      }]);
+    }
   }
 
   async saveFile(filePath) {
@@ -479,14 +788,19 @@ class FileExplorer {
       // Create new model
       const model = monaco.editor.createModel(content, language);
 
+      // Array to store disposables (event listeners, decorations, etc.)
+      const disposables = [];
+
       // Set up change tracking
-      model.onDidChangeContent(() => {
-        const fileData = this.openedFiles.get(filePath);
-        if (fileData && !fileData.isModified) {
-          fileData.isModified = true;
-          this.updateTabState(filePath);
-        }
-      });
+      disposables.push(
+        model.onDidChangeContent(() => {
+          const fileData = this.openedFiles.get(filePath);
+          if (fileData && !fileData.isModified) {
+            fileData.isModified = true;
+            this.updateTabState(filePath);
+          }
+        })
+      );
 
       // Create and add tab
       const fileName = window.electronAPI.path.basename(filePath);
@@ -499,6 +813,7 @@ class FileExplorer {
         viewState: null,
         isModified: false,
         originalContent: content,
+        disposables: disposables, // Store the disposables array
       });
 
       // Switch to this file if requested
@@ -569,18 +884,32 @@ class FileExplorer {
 }
 
 // Initialize when DOM and Monaco are loaded
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initializeApp);
-} else {
-  initializeApp();
-}
-
 function initializeApp() {
-  // Ensure monaco is available
-  if (window.monaco) {
+  console.log('Initializing application...');
+  try {
+    // Check if Monaco is available
+    if (typeof window.monaco === 'undefined' || !window.monaco.editor) {
+      console.warn('Monaco not yet available, waiting...');
+      setTimeout(initializeApp, 100);
+      return;
+    }
+
+    console.log('Monaco is available, creating FileExplorer...');
     window.fileExplorer = new FileExplorer();
     window.terminalManager = new TerminalManager();
-  } else {
-    console.error("Monaco editor not initialized");
+  } catch (error) {
+    console.error('Error during app initialization:', error);
   }
+}
+
+// Start initialization when the script loads
+console.log('Setting up initialization...');
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    console.log('DOM loaded, starting initialization...');
+    initializeApp();
+  });
+} else {
+  console.log('DOM already loaded, starting initialization...');
+  initializeApp();
 }

@@ -156,32 +156,58 @@
 
       // Load Monaco and then our renderer
       require(["vs/editor/editor.main"], async function () {
-        window.monaco = monaco;
+        try {
+          console.log("Monaco loaded, initializing...");
+          window.monaco = monaco;
 
-        // Initialize themes
-        if (window.editorThemes) {
-          Object.entries(window.editorThemes).forEach(([name, theme]) => {
-            try {
-              monaco.editor.defineTheme(name, theme);
-            } catch (e) {
-              console.warn("Theme already defined:", name);
+          // Initialize themes
+          if (window.editorThemes) {
+            Object.entries(window.editorThemes).forEach(([name, theme]) => {
+              try {
+                monaco.editor.defineTheme(name, theme);
+              } catch (e) {
+                console.warn("Theme already defined:", name);
+              }
+            });
+          }
+
+          // Load saved theme if available
+          try {
+            const savedTheme =
+              (await window.electronAPI.store.get("selectedTheme")) || "vs-dark";
+            monaco.editor.setTheme(savedTheme);
+          } catch (error) {
+            console.warn("Failed to load saved theme:", error);
+            monaco.editor.setTheme("vs-dark");
+          }
+
+          // Wait for Monaco to be fully initialized
+          await new Promise(resolve => {
+            if (window.monaco && window.monaco.editor) {
+              resolve();
+            } else {
+              const checkMonaco = setInterval(() => {
+                if (window.monaco && window.monaco.editor) {
+                  clearInterval(checkMonaco);
+                  resolve();
+                }
+              }, 50);
             }
           });
-        }
 
-        // Load saved theme if available
-        try {
-          const savedTheme =
-            (await window.electronAPI.store.get("selectedTheme")) || "vs-dark";
-          monaco.editor.setTheme(savedTheme);
+          console.log("Monaco initialization complete, loading file manager...");
+          const script = document.createElement("script");
+          script.src = "./components/fileManagerAndEditor.js";
+          script.onload = () => {
+            console.log("File manager script loaded");
+          };
+          script.onerror = (error) => {
+            console.error("Error loading file manager script:", error);
+          };
+          document.body.appendChild(script);
         } catch (error) {
-          console.warn("Failed to load saved theme:", error);
-          monaco.editor.setTheme("vs-dark");
+          console.error("Error during Monaco initialization:", error);
         }
-
-        const script = document.createElement("script");
-        script.src = "./components/fileManagerAndEditor.js";
-        document.body.appendChild(script);
       });
     </script>
     <script src="./services/themes.js"></script>

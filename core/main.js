@@ -238,6 +238,20 @@ ipcMain.handle("get-home-dir", () => {
   return os.homedir();
 });
 
+// New handlers for path operations
+ipcMain.handle("path:resolve", (_, ...paths) => {
+  return path.resolve(...paths);
+});
+
+ipcMain.handle("fileSystem:exists", async (_, filePath) => {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+});
+
 // Handle state loading
 ipcMain.handle("load-state", async () => {
   try {
