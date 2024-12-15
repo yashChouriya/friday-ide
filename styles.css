@@ -2,6 +2,33 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+}
+
+/* Webkit scrollbar styles (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-height);
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: var(--scrollbar-border-radius);
+  border: 2px solid var(--scrollbar-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+/* Corner where horizontal and vertical scrollbars meet */
+::-webkit-scrollbar-corner {
+  background: var(--scrollbar-bg);
 }
 
 :root {
@@ -27,9 +54,13 @@
   --text-warning: #cca700;
   --text-success: #89d185;
 
-  --scrollbar-bg: #1e1e1e;
+  /* Scrollbar Colors */
+  --scrollbar-bg: var(--bg-primary);
   --scrollbar-thumb: #424242;
   --scrollbar-thumb-hover: #4f4f4f;
+  --scrollbar-width: 8px;
+  --scrollbar-height: 8px;
+  --scrollbar-border-radius: 4px;
   --button-bg: #0e639c;
   --button-hover: #1177bb;
   --button-active: #13487b;
@@ -51,7 +82,9 @@ body {
 .container {
   display: flex;
   height: 100vh;
-  overflow: hidden; /* Prevent main window scroll */
+  position: relative;
+  overflow: hidden; /* Prevent horizontal scroll */
+  min-width: 0; /* Prevent flex items from overflowing */
 }
 
 .sidebar {
@@ -897,12 +930,16 @@ body {
   border-left: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, width 0.3s ease;
   z-index: 1000;
+  box-sizing: border-box;
+  overflow: hidden; /* Hide any overflow during transitions */
 }
 
 .chat-panel.hidden {
   transform: translateX(100%);
+  width: 0;
+  visibility: hidden; /* Hide panel completely when collapsed */
 }
 
 .chat-panel-resize-handle {
@@ -961,10 +998,13 @@ html.resizing {
 .chat-messages {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: calc(100vh - 120px); /* Account for header and input area */
+  min-width: 0; /* Prevent horizontal overflow in flex container */
 }
 
 .chat-message {
@@ -974,6 +1014,10 @@ html.resizing {
   border-radius: 6px;
   background-color: var(--bg-secondary);
   animation: message-fade-in 0.3s ease;
+  min-width: 0;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 @keyframes message-fade-in {
