@@ -46,6 +46,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     saveFile: (filePath, content) =>
       ipcRenderer.invoke("save-file", { filePath, content }),
     showMessage: (options) => ipcRenderer.invoke("show-message", options),
+    createFile: (path) => ipcRenderer.invoke("create-file", path),
+    createFolder: (path) => ipcRenderer.invoke("create-folder", path),
+    deleteItem: (path) => ipcRenderer.invoke("delete-item", path),
+    renameItem: (oldPath, newPath) => 
+      ipcRenderer.invoke("rename-item", { oldPath, newPath }),
   },
   // Monaco environment configuration
   monacoEnv: {

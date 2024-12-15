@@ -52,6 +52,7 @@ class FileExplorer {
     await this.loadSavedState();
     this.setupStateHandlers();
     this.setupEmptyEditorHandlers();
+    this.setupContextMenu();
   }
 
   async initializeMonaco() {
@@ -509,7 +510,249 @@ class FileExplorer {
           openFolderBtn.click();
         }
       }
+
+      // File creation shortcuts
+      if (this.currentPath) {
+        // Ctrl + N: New File
+        if (e.ctrlKey && !e.shiftKey && e.key === "n") {
+          e.preventDefault();
+          this.showFileCreationUI(this.currentPath, "file");
+        }
+        
+        // Ctrl + Shift + N: New Folder
+        if (e.ctrlKey && e.shiftKey && e.key === "N") {
+          e.preventDefault();
+          this.showFileCreationUI(this.currentPath, "folder");
+        }
+      }
+
+      // Delete: Delete selected item
+      if (e.key === "Delete") {
+        const selectedItem = this.fileTree.querySelector(".tree-item-content.selected");
+        if (selectedItem) {
+          e.preventDefault();
+          const itemPath = selectedItem.parentElement.dataset.path;
+          await this.deleteItem(itemPath);
+        }
+      }
     });
+  }
+
+  setupContextMenu() {
+    // Prevent default context menu
+    this.fileTree.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      
+      // Get clicked item
+      const treeItem = e.target.closest(".tree-item");
+      if (!treeItem) return;
+
+      // Select the item that was right-clicked
+      const treeItemContent = treeItem.querySelector(".tree-item-content");
+      this.selectTreeItem(treeItemContent);
+
+      // Show context menu
+      const contextMenu = document.querySelector(".context-menu");
+      contextMenu.style.left = e.pageX + "px";
+      contextMenu.style.top = e.pageY + "px";
+      contextMenu.classList.add("visible");
+
+      // Handle menu item clicks
+      const handleMenuClick = async (e) => {
+        const action = e.target.closest(".context-menu-item")?.dataset.action;
+        if (!action) return;
+
+        const itemPath = treeItem.dataset.path;
+        switch (action) {
+          case "new-file":
+            this.showFileCreationUI(itemPath, "file");
+            break;
+          case "new-folder":
+            this.showFileCreationUI(itemPath, "folder");
+            break;
+          case "delete":
+            await this.deleteItem(itemPath);
+            break;
+          case "rename":
+            // TODO: Implement rename functionality
+            break;
+        }
+        contextMenu.classList.remove("visible");
+      };
+
+      // Add one-time click handler
+      contextMenu.addEventListener("click", handleMenuClick, { once: true });
+    });
+
+    // Hide context menu when clicking outside
+    document.addEventListener("click", () => {
+      document.querySelector(".context-menu").classList.remove("visible");
+    });
+  }
+
+  selectTreeItem(itemContent) {
+    // Remove previous selection
+    const previousSelected = this.fileTree.querySelector(".tree-item-content.selected");
+    if (previousSelected) {
+      previousSelected.classList.remove("selected");
+    }
+    // Add selection to clicked item
+    itemContent.classList.add("selected");
+  }
+
+  async showFileCreationUI(parentPath, type = "file") {
+    const overlay = document.querySelector(".file-creation-overlay");
+    const input = overlay.querySelector(".file-creation-input");
+    const createButton = overlay.querySelector(".file-creation-button");
+    const error = overlay.querySelector(".file-creation-error");
+    
+    // Get target directory
+    const stats = await window.electronAPI.fileSystem.isDirectory(parentPath);
+    const targetDir = stats ? parentPath : window.electronAPI.path.dirname(parentPath);
+    
+    // Position the overlay
+    const treeItem = this.fileTree.querySelector(`[data-path="${targetDir}"]`);
+    if (treeItem) {
+      const rect = treeItem.getBoundingClientRect();
+      overlay.style.left = rect.left + "px";
+      overlay.style.top = (rect.bottom + 5) + "px";
+    }
+
+    // Show overlay and focus input
+    overlay.classList.add("visible");
+    input.value = "";
+    input.placeholder = type === "file" ? "filename" : "foldername";
+    input.focus();
+
+    // Create function for handling file/folder creation
+    const handleCreation = async () => {
+      const name = input.value.trim();
+      if (!name) return;
+
+      try {
+        // Parse path for nested creation
+        const parts = name.split("/");
+        let currentPath = targetDir;
+
+        for (let i = 0; i < parts.length; i++) {
+          const part = parts[i].trim();
+          if (!part) continue;
+
+          const isLast = i === parts.length - 1;
+          currentPath = window.electronAPI.path.join(currentPath, part);
+
+          if (isLast) {
+            if (type === "file") {
+              await window.electronAPI.fileSystem.createFile(currentPath);
+              // Open the new file
+              await this.loadFile(currentPath);
+            } else {
+              await window.electronAPI.fileSystem.createFolder(currentPath);
+            }
+          } else {
+            // Create intermediate directories
+            await window.electronAPI.fileSystem.createFolder(currentPath);
+          }
+        }
+
+        // Refresh the tree view
+        if (treeItem.classList.contains("directory")) {
+          await this.expandDirectory(treeItem);
+        } else {
+          await this.expandDirectory(treeItem.parentElement.closest(".tree-item"));
+        }
+
+        overlay.classList.remove("visible");
+      } catch (err) {
+        error.textContent = err.message;
+        error.style.display = "block";
+        setTimeout(() => {
+          error.style.display = "none";
+        }, 3000);
+      }
+    };
+
+    // Handle Enter key
+    const handleKeyDown = async (e) => {
+      if (e.key === "Escape") {
+        overlay.classList.remove("visible");
+        cleanup();
+        return;
+      }
+
+      if (e.key === "Enter") {
+        await handleCreation();
+        cleanup();
+      }
+    };
+
+    // Handle create button click
+    const handleClick = async () => {
+      await handleCreation();
+      cleanup();
+    };
+
+    // Cleanup function to remove event listeners
+    const cleanup = () => {
+      input.removeEventListener("keydown", handleKeyDown);
+      createButton.removeEventListener("click", handleClick);
+      document.removeEventListener("click", handleOutsideClick);
+    };
+
+    // Handle clicking outside the overlay
+    const handleOutsideClick = (e) => {
+      if (!overlay.contains(e.target)) {
+        overlay.classList.remove("visible");
+        cleanup();
+      }
+    };
+
+    // Add event listeners
+    input.addEventListener("keydown", handleKeyDown);
+    createButton.addEventListener("click", handleClick);
+    document.addEventListener("click", handleOutsideClick);
+  }
+
+  async deleteItem(itemPath) {
+    try {
+      const stats = await window.electronAPI.fileSystem.isDirectory(itemPath);
+      const itemType = stats ? "folder" : "file";
+      
+      // Show confirmation dialog
+      const result = await window.electronAPI.fileSystem.showMessage({
+        type: 'warning',
+        title: 'Confirm Delete',
+        message: `Are you sure you want to delete this ${itemType}?\n${itemPath}`,
+        buttons: ['Delete', 'Cancel'],
+        defaultId: 1,
+        cancelId: 1,
+      });
+
+      if (result.response === 0) { // User clicked Delete
+        // Close file if it's open
+        if (this.openedFiles.has(itemPath)) {
+          await this.closeFile(itemPath);
+        }
+
+        // Delete the item
+        await window.electronAPI.fileSystem.deleteItem(itemPath);
+
+        // Refresh parent directory
+        const parentDir = window.electronAPI.path.dirname(itemPath);
+        const parentItem = this.fileTree.querySelector(`[data-path="${parentDir}"]`);
+        if (parentItem) {
+          await this.expandDirectory(parentItem);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      window.electronAPI.fileSystem.showMessage({
+        type: 'error',
+        title: 'Delete Error',
+        message: `Error deleting item: ${error.message}`,
+        buttons: ['OK']
+      });
+    }
   }
 
   async setupLinkProviders() {

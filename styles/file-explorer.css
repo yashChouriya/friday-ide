@@ -214,3 +214,123 @@
   height: 1px;
   background-color: #383838;
 }
+
+/* File Creation UI */
+.file-creation-overlay {
+  position: absolute;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 6px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  display: none;
+  min-width: 250px;
+}
+
+.file-creation-overlay.visible {
+  display: block;
+}
+
+.file-creation-container {
+  display: flex;
+  gap: 4px;
+}
+
+.file-creation-input {
+  flex: 1;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  font-size: 13px;
+  outline: none;
+  border-radius: 3px;
+  min-width: 200px;
+}
+
+.file-creation-input:focus {
+  border-color: var(--button-bg);
+}
+
+.file-creation-button {
+  background: var(--button-bg);
+  border: none;
+  color: var(--text-active);
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-creation-button:hover {
+  background: var(--button-hover);
+  transform: translateY(-1px);
+}
+
+.file-creation-button:active {
+  background: var(--button-active);
+  transform: translateY(0);
+}
+
+.file-creation-button i {
+  font-size: 12px;
+}
+
+.file-creation-error {
+  color: var(--text-error);
+  font-size: 11px;
+  margin-top: 6px;
+  padding: 4px 6px;
+  background: var(--bg-hover);
+  border-radius: 3px;
+  display: none;
+}
+
+/* Context Menu */
+.context-menu {
+  position: fixed;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 4px 0;
+  min-width: 160px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: none;
+}
+
+.context-menu.visible {
+  display: block;
+}
+
+.context-menu-item {
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.context-menu-item:hover {
+  background: var(--bg-hover);
+}
+
+.context-menu-item .shortcut {
+  color: var(--text-secondary);
+  margin-left: 16px;
+  font-size: 11px;
+}
+
+.context-menu-separator {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 4px 0;
+}

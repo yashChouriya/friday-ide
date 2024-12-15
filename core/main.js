@@ -238,6 +238,60 @@ ipcMain.handle("get-home-dir", () => {
   return os.homedir();
 });
 
+// File creation handlers
+ipcMain.handle("create-file", async (_, filePath) => {
+  try {
+    // Extract directory path
+    const dirPath = path.dirname(filePath);
+    
+    // Create directory if it doesn't exist
+    await fs.mkdir(dirPath, { recursive: true });
+    
+    // Create empty file
+    await fs.writeFile(filePath, '');
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error creating file:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle("create-folder", async (_, folderPath) => {
+  try {
+    await fs.mkdir(folderPath, { recursive: true });
+    return { success: true };
+  } catch (error) {
+    console.error('Error creating folder:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle("delete-item", async (_, itemPath) => {
+  try {
+    const stats = await fs.stat(itemPath);
+    if (stats.isDirectory()) {
+      await fs.rm(itemPath, { recursive: true });
+    } else {
+      await fs.unlink(itemPath);
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting item:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle("rename-item", async (_, { oldPath, newPath }) => {
+  try {
+    await fs.rename(oldPath, newPath);
+    return { success: true };
+  } catch (error) {
+    console.error('Error renaming item:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 // New handlers for path operations
 ipcMain.handle("path:resolve", (_, ...paths) => {
   return path.resolve(...paths);
