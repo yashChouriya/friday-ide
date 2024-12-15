@@ -425,7 +425,10 @@ class FileExplorer {
             await this.switchToFile(remainingFiles[remainingFiles.length - 1]);
           } else {
             this.lastOpenedFile = null;
-            this.checkEmptyEditorState();
+            this.editor.setModel(null);
+            if (this.currentPath) {
+              this.showEmptyEditor();
+            }
           }
         }
       }
@@ -1101,21 +1104,14 @@ class FileExplorer {
   }
 
   setupEmptyEditorHandlers() {
-    // Setup button handlers
-    const newFileButton = document.getElementById('new-file-button');
-    const openFileButton = document.getElementById('open-file-button');
+    // Setup new file button handler
+    const emptyNewFileButton = document.getElementById('empty-new-file-button');
     
-    if (newFileButton) {
-      newFileButton.addEventListener('click', () => {
-        // TODO: Implement new file creation
-        console.log('New file button clicked');
-      });
-    }
-
-    if (openFileButton) {
-      openFileButton.addEventListener('click', () => {
-        // TODO: Implement file opening
-        console.log('Open file button clicked');
+    if (emptyNewFileButton) {
+      emptyNewFileButton.addEventListener('click', () => {
+        if (this.currentPath) {
+          this.showFileCreationUI(this.currentPath, 'file');
+        }
       });
     }
 
