@@ -296,30 +296,44 @@
   position: fixed;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 4px 0;
-  min-width: 200px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  z-index: 9999;
+  min-width: 220px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2),
+              0 4px 16px rgba(0, 0, 0, 0.4);
+  z-index: 99999; /* Ensure it's above everything */
   display: none;
   max-height: calc(100vh - 20px);
   overflow-y: auto;
   overflow-x: hidden;
+  /* Backdrop blur for modern look */
+  backdrop-filter: blur(8px);
+  /* Add some transparency to background */
+  background-color: rgba(var(--bg-primary-rgb, 30, 30, 30), 0.95);
+  /* Animation */
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity 0.12s ease, transform 0.12s ease;
 }
 
 .context-menu.visible {
   display: block;
+  opacity: 1;
+  transform: scale(1);
 }
 
 .context-menu-item {
-  padding: 6px 12px;
+  padding: 6px 10px 6px 32px;
+  min-height: 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
   color: var(--text-primary);
-  font-size: 12px;
+  font-size: 13px;
   white-space: nowrap;
+  position: relative;
+  user-select: none;
 }
 
 .context-menu-item:hover {
@@ -327,13 +341,19 @@
 }
 
 .context-menu-item .shortcut {
+  margin-left: 32px;
   color: var(--text-secondary);
-  margin-left: 16px;
-  font-size: 11px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.context-menu-item:hover .shortcut {
+  opacity: 1;
 }
 
 .context-menu-separator {
   height: 1px;
   background: var(--border-subtle);
   margin: 4px 0;
+  opacity: 0.5;
 }
