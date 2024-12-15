@@ -14,36 +14,71 @@ class SidebarManager {
             this.toggleSidebar();
         });
 
-        // Set up activity button handlers
-        this.activityButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                this.handleActivityButtonClick(button);
+        // Set up explorer toggle button
+        const explorerButton = document.getElementById('toggle-explorer');
+        if (explorerButton) {
+            explorerButton.addEventListener('click', () => {
+                // Toggle the sidebar state
+                this.toggleSidebar();
+                // Keep the explorer button active
+                explorerButton.classList.add('active');
             });
+        }
+
+        // Set up other activity button handlers
+        this.activityButtons.forEach(button => {
+            if (button.id !== 'toggle-explorer') { // Skip explorer button as it's handled above
+                button.addEventListener('click', () => {
+                    this.handleActivityButtonClick(button);
+                });
+            }
         });
     }
 
-    toggleSidebar() {
-        const isCollapsed = this.sidebarPanel.classList.toggle('collapsed');
+    toggleSidebar(forceState = null) {
+        // If forceState is provided, set that state
+        // Otherwise toggle current state
+        const willCollapse = forceState !== null ? forceState : !this.sidebarPanel.classList.contains('collapsed');
+        
+        if (willCollapse) {
+            this.sidebarPanel.classList.add('collapsed');
+        } else {
+            this.sidebarPanel.classList.remove('collapsed');
+        }
         
         // Store the state
-        localStorage.setItem('sidebarCollapsed', isCollapsed);
+        localStorage.setItem('sidebarCollapsed', willCollapse);
         
         // Rotate the collapse button icon
         const icon = this.collapseButton.querySelector('i');
-        icon.style.transform = isCollapsed ? 'rotate(180deg)' : '';
+        icon.style.transform = willCollapse ? 'rotate(180deg)' : '';
+        
+        return willCollapse;
     }
 
     handleActivityButtonClick(clickedButton) {
-        // Toggle active state
-        this.activityButtons.forEach(button => {
-            button.classList.toggle('active', button === clickedButton);
-        });
+        // Special handling for explorer button
+        if (clickedButton.id === 'toggle-explorer') {
+            // Keep explorer button active unless another button is clicked
+            if (!clickedButton.classList.contains('active')) {
+                clickedButton.classList.add('active');
+            }
+        } else {
+            // For other buttons, toggle active state as usual
+            this.activityButtons.forEach(button => {
+                button.classList.toggle('active', button === clickedButton);
+            });
+        }
 
-        // If clicking the active button when sidebar is collapsed, expand it
+        // Handle sidebar expansion
         if (clickedButton.classList.contains('active') && 
             this.sidebarPanel.classList.contains('collapsed')) {
             this.sidebarPanel.classList.remove('collapsed');
             localStorage.setItem('sidebarCollapsed', false);
+            
+            // Update collapse button icon
+            const icon = this.collapseButton.querySelector('i');
+            icon.style.transform = '';
         }
     }
 

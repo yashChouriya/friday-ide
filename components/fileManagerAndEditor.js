@@ -517,17 +517,7 @@ class FileExplorer {
       // File creation shortcuts
       if (this.currentPath) {
         const handleCreationShortcut = async (type) => {
-          // Ensure file explorer is expanded
-          const sidebarPanel = document.querySelector('.sidebar-panel');
-          if (sidebarPanel.classList.contains('collapsed')) {
-            // Find and click the collapse button
-            const collapseButton = document.querySelector('.collapse-button');
-            if (collapseButton) {
-              collapseButton.click();
-              // Wait for animation
-              await new Promise(resolve => setTimeout(resolve, 200));
-            }
-          }
+          await this.ensureFileExplorerExpanded();
           this.showFileCreationUI(this.currentPath, type);
         };
 
@@ -1143,8 +1133,9 @@ class FileExplorer {
     const emptyNewFileButton = document.getElementById('empty-new-file-button');
     
     if (emptyNewFileButton) {
-      emptyNewFileButton.addEventListener('click', () => {
+      emptyNewFileButton.addEventListener('click', async () => {
         if (this.currentPath) {
+          await this.ensureFileExplorerExpanded();
           this.showFileCreationUI(this.currentPath, 'file');
         }
       });
@@ -1235,6 +1226,19 @@ class FileExplorer {
       return filePath;
     }
     return filePath.substring(this.currentPath.length + 1);
+  }
+
+  async ensureFileExplorerExpanded() {
+    const sidebarPanel = document.querySelector('.sidebar-panel');
+    if (sidebarPanel.classList.contains('collapsed')) {
+      // Find and click the collapse button
+      const collapseButton = document.querySelector('.collapse-button');
+      if (collapseButton) {
+        collapseButton.click();
+        // Wait for animation
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
   }
 
   async openDirectory(dirPath) {
