@@ -57,22 +57,25 @@ class FileExplorer {
 
   async initializeMonaco() {
     return new Promise(async (resolve) => {
-      // Set up keyboard shortcuts
-      this.setupKeyboardShortcuts();
-
-      // Get saved theme before creating editor
-      let theme = "vs-dark";
       try {
-        const savedTheme = await window.electronAPI.store.get("selectedTheme");
-        if (savedTheme) {
-          theme = savedTheme;
-          console.log("Loaded saved theme for editor:", theme);
+        // Set up keyboard shortcuts
+        this.setupKeyboardShortcuts();
+
+        // Initialize managers
+        this.configManager = new EditorConfigManager();
+        
+        // Get saved theme before creating editor
+        let theme = "vs-dark";
+        try {
+          const savedTheme = await window.electronAPI.store.get("selectedTheme");
+          if (savedTheme) {
+            theme = savedTheme;
+            console.log("Loaded saved theme for editor:", theme);
+          }
+        } catch (error) {
+          console.warn("Failed to load theme for editor:", error);
         }
-      } catch (error) {
-        console.warn("Failed to load theme for editor:", error);
-      }
 
-      try {
         // Ensure monaco is available
         if (typeof monaco === 'undefined' || !monaco.editor) {
           throw new Error('Monaco editor not properly loaded');
@@ -80,55 +83,39 @@ class FileExplorer {
 
         console.log('Creating Monaco editor instance...');
         
-        // Initialize Monaco Editor with saved theme
+        // Get initial configuration with theme-specific settings
+        const initialConfig = this.configManager.getConfigForTheme(theme);
+        
+        // Initialize Monaco Editor with configuration
         this.editor = monaco.editor.create(this.editorContainer, {
+          ...initialConfig,
           value: "", // Empty initial content
           language: "plaintext",
           theme: theme,
-          suggest: {
-            snippetsPreventQuickSuggestions: false,
-          },
-          automaticLayout: true,
-          minimap: {
-            enabled: true,
-          },
-          scrollBeyondLastLine: false,
-          renderWhitespace: "selection",
-          fontFamily: "'Fira Code', 'Consolas', 'Monaco', monospace",
-          fontSize: 14,
-          lineNumbers: "on",
-          roundedSelection: false,
-          
-          scrollbar: {
-            useShadows: true,
-            verticalHasArrows: false,
-            horizontalHasArrows: false,
-            vertical: "visible",
-            horizontal: "visible",
-            verticalScrollbarSize: 10,
-            horizontalScrollbarSize: 10,
-            arrowSize: 30,
-          },
         });
 
-        // Wait a bit to ensure editor is fully initialized
+        // Initialize other managers after editor creation
+        this.performanceManager = new EditorPerformanceManager(this.editor);
+        this.themeManager = new EditorThemeManager(this.editor, this.configManager);
+        this.intelligenceManager = new EditorIntelligenceManager(this.editor);
+
+        // Setup manager features
+        await this.themeManager.setTheme(theme);
+        const cleanupPerformance = this.performanceManager.setupPerformanceOptimizations();
+
+        // Wait for editor to be fully ready
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Add window resize handler
-        window.addEventListener("resize", () => {
+        // Setup cleanup on window unload
+        window.addEventListener('beforeunload', () => {
+          this.intelligenceManager.dispose();
+          cleanupPerformance();
           if (this.editor) {
-            this.editor.layout();
+            this.editor.dispose();
           }
         });
 
-        // Only setup link providers if editor is properly initialized
-        if (this.editor) {
-          console.log('Editor initialized, setting up link providers...');
-          await this.setupLinkProviders();
-        } else {
-          console.warn('Editor not properly initialized');
-        }
-
+        console.log('Editor initialization complete');
       } catch (error) {
         console.error('Error initializing Monaco editor:', error);
       }
@@ -1065,6 +1052,8 @@ class FileExplorer {
 
   async loadFile(filePath, switchToFile = true) {
     try {
+      console.log(`Loading file: ${filePath}`);
+      
       // Check if file is already open
       if (this.openedFiles.has(filePath)) {
         if (switchToFile) {
@@ -1076,16 +1065,28 @@ class FileExplorer {
       // Check if we've reached the file limit
       if (this.openedFiles.size >= this.MAX_OPEN_FILES) {
         // Find the oldest file that isn't the current file and close it
-        const filesArray = Array.from(this.openedFiles.keys());
+        const filesArray = Array.from(this.openedFiles.entries())
+          .sort(([, a], [, b]) => a.lastModified - b.lastModified)
+          .map(([path]) => path);
         const oldestFile = filesArray[0];
         await this.closeFile(oldestFile);
       }
 
+      // Load file content
       const content = await window.electronAPI.fileSystem.readFile(filePath);
-      const language = this.getLanguageFromPath(filePath);
+      
+      // Check if it's a large file and apply optimizations if needed
+      const isLargeFile = await this.performanceManager.handleLargeFile(content, filePath);
+      if (isLargeFile) {
+        console.log('Large file optimizations applied');
+      }
 
-      // Create new model
+      // Get language and create model
+      const language = this.getLanguageFromPath(filePath);
       const model = monaco.editor.createModel(content, language);
+
+      // Apply language-specific theme rules
+      this.themeManager.applyLanguageSpecificRules(language);
 
       // Array to store disposables (event listeners, decorations, etc.)
       const disposables = [];

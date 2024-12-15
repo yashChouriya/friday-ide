@@ -56,7 +56,8 @@ function createWindow() {
 
   // Load the index.html file
   mainWindow.loadFile("index.html");
-
+  // Maximize the window
+  mainWindow.maximize()
   // Open the DevTools in development mode
   mainWindow.webContents.openDevTools();
 
