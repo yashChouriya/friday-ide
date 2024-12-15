@@ -1,0 +1,103 @@
+.sidebar {
+  display: flex;
+  background-color: var(--bg-secondary);
+  color: var(--text-active);
+  overflow: hidden;
+}
+
+.activity-bar {
+  width: 48px;
+  background-color: var(--bg-tertiary);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 0;
+  z-index: 2;
+}
+
+.activity-bar-top,
+.activity-bar-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.activity-button {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.activity-button i {
+  font-size: 20px;
+  transition: all 0.2s ease;
+}
+
+.activity-button:hover {
+  color: var(--text-active);
+  background-color: var(--bg-hover);
+}
+
+.activity-button:hover i {
+  transform: scale(1.1);
+}
+
+.activity-button.active {
+  color: var(--text-active);
+}
+
+.activity-button.active i {
+  text-shadow: 0 0 8px var(--border-active);
+}
+
+.activity-button.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 2px;
+  background-color: var(--border-active);
+  box-shadow: 0 0 4px var(--border-active);
+}
+
+/* Special styling for terminal button */
+#toggle-terminal.activity-button {
+  margin-bottom: 4px;
+}
+
+#toggle-terminal.activity-button.active {
+  color: var(--button-bg);
+}
+
+#toggle-terminal.activity-button.active i {
+  text-shadow: 0 0 8px var(--button-bg);
+}
+
+#toggle-terminal.activity-button.active::before {
+  background-color: var(--button-bg);
+  box-shadow: 0 0 4px var(--button-bg);
+}
+
+.sidebar-panel {
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar-panel.collapsed {
+  width: 0;
+}

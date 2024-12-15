@@ -1,0 +1,194 @@
+.file-explorer {
+  flex: 1;
+  background-color: var(--bg-secondary);
+  color: var(--text-active);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 250px;
+}
+
+.explorer-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--bg-secondary);
+}
+
+.header-with-collapse {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.collapse-button {
+  background: transparent;
+  border: none;
+  color: #858585;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.collapse-button i {
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.collapse-button:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.collapse-button:hover i {
+  transform: scale(1.1);
+}
+
+#open-folder {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+  outline: none;
+}
+
+#open-folder:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-active);
+}
+
+#open-folder:active {
+  background: var(--bg-active);
+  border-color: var(--border-active);
+}
+
+#file-tree {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 0;
+  font-size: 13px;
+  padding: 5px;
+  user-select: none;
+}
+
+.tree-item {
+  cursor: pointer;
+  padding: 3px 0;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-item-content {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  height: 22px;
+  border-radius: 3px;
+  gap: 4px;
+}
+
+.tree-item-content:hover {
+  background-color: var(--bg-hover);
+}
+
+.tree-item .icon {
+  font-size: 14px;
+  width: 16px;
+  margin-right: 4px;
+  text-align: center;
+  transition: filter 0.2s ease;
+  color: var(--text-secondary);
+}
+
+.tree-item .icon.fa-folder {
+  color: var(--text-warning);
+}
+
+.tree-item.expanded > .tree-item-content .icon.fa-folder:before {
+  content: "\f07c";
+}
+
+.tree-item-content:hover .icon {
+  color: var(--text-active);
+}
+
+.tree-item .name {
+  font-size: 13px;
+  line-height: 22px;
+  color: var(--text-primary);
+}
+
+.tree-item.directory > .children {
+  display: none;
+  padding-left: 16px;
+}
+
+.tree-item.directory > .children::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 22px;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--tree-indent-guide);
+}
+
+.arrow-icon {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: transform 0.15s ease;
+}
+
+.arrow-spacer {
+  width: 16px;
+  display: inline-block;
+}
+
+.tree-item.directory.expanded > .tree-item-content .arrow-icon {
+  transform: rotate(90deg);
+}
+
+.tree-item.directory.expanded > .children {
+  display: block;
+}
+
+.tree-item-content.selected {
+  background-color: var(--bg-selected);
+}
+
+.tree-item-content.selected .name,
+.tree-item-content.selected .icon {
+  color: var(--text-active);
+}
+
+/* Add guides for each level */
+.tree-item .children .tree-item-content::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 11px;
+  width: 8px;
+  height: 1px;
+  background-color: #383838;
+}

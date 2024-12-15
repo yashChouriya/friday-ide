@@ -1,0 +1,108 @@
+#terminal {
+  height: 300px;
+  background-color: var(--bg-primary);
+  border-top: 1px solid var(--button-bg);
+  padding: 8px 4px;
+  z-index: 10;
+  position: relative;
+  min-height: 100px;
+  max-height: 80vh;
+  resize: vertical;
+  overflow: hidden;
+  box-shadow: 0 -2px 6px -2px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, opacity 0.3s ease, height 0.3s ease;
+  transform-origin: bottom;
+  opacity: 1;
+}
+
+#terminal.hidden {
+  transform: translateY(100%);
+  opacity: 0;
+  height: 0;
+  padding: 0;
+  border: none;
+  pointer-events: none;
+}
+
+/* Terminal resize handle */
+#terminal::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--button-bg);
+  cursor: row-resize;
+  z-index: 11;
+  opacity: 0.6;
+  transition: all 0.2s ease, opacity 0.3s ease;
+  box-shadow: 0 0 4px var(--button-bg);
+}
+
+#terminal:hover::before {
+  opacity: 1;
+  height: 3px;
+  top: -1.5px;
+  box-shadow: 0 0 8px var(--button-bg);
+}
+
+#terminal.hidden::before {
+  opacity: 0;
+}
+
+/* Custom scrollbar for terminal */
+.xterm-viewport::-webkit-scrollbar {
+  width: 10px;
+}
+
+.xterm-viewport::-webkit-scrollbar-track {
+  background: var(--scrollbar-bg);
+}
+
+.xterm-viewport::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 5px;
+  border: 2px solid var(--scrollbar-bg);
+}
+
+.xterm-viewport::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.toggle-terminal {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background: #333;
+  border: none;
+  color: #969696;
+  cursor: pointer;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-terminal:hover {
+  background: #444;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-terminal.active {
+  color: var(--button-bg);
+  background: var(--bg-hover);
+  box-shadow: 0 0 8px var(--button-bg);
+}
+
+.toggle-terminal.active:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px var(--button-bg);
+}

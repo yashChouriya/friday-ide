@@ -1,0 +1,8 @@
+@import 'base.css';
+@import 'sidebar.css';
+@import 'file-explorer.css';
+@import 'editor.css';
+@import 'terminal.css';
+@import 'chat.css';
+@import 'welcome.css';
+@import 'settings.css';
