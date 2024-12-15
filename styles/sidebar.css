@@ -158,7 +158,7 @@
 }
 
 .sidebar-panel {
-  width: 250px;
+  width: 300px;
   display: flex;
   flex-direction: column;
   transition: width 0.2s ease;

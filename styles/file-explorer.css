@@ -298,10 +298,13 @@
   border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 4px 0;
-  min-width: 160px;
+  min-width: 200px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  z-index: 1000;
+  z-index: 9999;
   display: none;
+  max-height: calc(100vh - 20px);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .context-menu.visible {

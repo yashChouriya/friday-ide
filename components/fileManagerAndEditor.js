@@ -516,16 +516,31 @@ class FileExplorer {
 
       // File creation shortcuts
       if (this.currentPath) {
+        const handleCreationShortcut = async (type) => {
+          // Ensure file explorer is expanded
+          const sidebarPanel = document.querySelector('.sidebar-panel');
+          if (sidebarPanel.classList.contains('collapsed')) {
+            // Find and click the collapse button
+            const collapseButton = document.querySelector('.collapse-button');
+            if (collapseButton) {
+              collapseButton.click();
+              // Wait for animation
+              await new Promise(resolve => setTimeout(resolve, 200));
+            }
+          }
+          this.showFileCreationUI(this.currentPath, type);
+        };
+
         // Ctrl + N: New File
         if (e.ctrlKey && !e.shiftKey && e.key === "n") {
           e.preventDefault();
-          this.showFileCreationUI(this.currentPath, "file");
+          handleCreationShortcut("file");
         }
         
         // Ctrl + Shift + N: New Folder
         if (e.ctrlKey && e.shiftKey && e.key === "N") {
           e.preventDefault();
-          this.showFileCreationUI(this.currentPath, "folder");
+          handleCreationShortcut("folder");
         }
       }
 
@@ -554,10 +569,30 @@ class FileExplorer {
       const treeItemContent = treeItem.querySelector(".tree-item-content");
       this.selectTreeItem(treeItemContent);
 
-      // Show context menu
+      // Show context menu with position adjustment
       const contextMenu = document.querySelector(".context-menu");
-      contextMenu.style.left = e.pageX + "px";
-      contextMenu.style.top = e.pageY + "px";
+      const rect = contextMenu.getBoundingClientRect();
+      
+      // Calculate initial position
+      let left = e.pageX;
+      let top = e.pageY;
+      
+      // Check right edge
+      if (left + rect.width > window.innerWidth) {
+        left = e.pageX - rect.width;
+      }
+      
+      // Check bottom edge
+      if (top + rect.height > window.innerHeight) {
+        top = e.pageY - rect.height;
+      }
+      
+      // Ensure minimum distance from edges
+      left = Math.max(0, Math.min(left, window.innerWidth - rect.width));
+      top = Math.max(0, Math.min(top, window.innerHeight - rect.height));
+      
+      contextMenu.style.left = left + "px";
+      contextMenu.style.top = top + "px";
       contextMenu.classList.add("visible");
 
       // Handle menu item clicks
