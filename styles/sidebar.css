@@ -78,8 +78,8 @@
 }
 
 .activity-button.active i {
-  text-shadow: 0 0 8px var(--button-bg);
-  transform: scale(1.1);
+  text-shadow: 0 0 0px var(--button-bg);
+  transform: scale(1.05);
 }
 
 .activity-button.active::before {
@@ -90,7 +90,7 @@
   bottom: 20%;
   width: 2px;
   background-color: var(--button-bg);
-  box-shadow: 0 0 4px var(--button-bg);
+  box-shadow: 0 0 1px var(--button-bg);
   transition: all 0.2s ease;
 }
 
@@ -110,7 +110,7 @@
   top: 15%;
   bottom: 15%;
   background-color: var(--button-hover);
-  box-shadow: 0 0 8px var(--button-hover);
+  box-shadow: 0 0 1px var(--button-hover);
   opacity: 1;
 }
 
@@ -125,12 +125,12 @@
 }
 
 #toggle-settings.activity-button.active i {
-  text-shadow: 0 0 8px var(--button-bg);
+  text-shadow: 0 0 0px var(--button-bg);
 }
 
 #toggle-settings.activity-button.active::before {
   background-color: var(--button-bg);
-  box-shadow: 0 0 4px var(--button-bg);
+  box-shadow: 0 0 1px var(--button-bg);
 }
 
 /* Add tooltip for activity buttons */

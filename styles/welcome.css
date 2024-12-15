@@ -72,7 +72,7 @@
 
 .welcome-button {
   background-color: var(--button-bg);
-  color: var(--text-active);
+  color: white;
   border: none;
   padding: 12px 24px;
   border-radius: 6px;
