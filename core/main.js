@@ -8,6 +8,9 @@ var shell = os.platform() === "win32" ? "powershell.exe" : "bash";
 // Store terminal instances
 const terminals = new Map();
 
+
+console.log("BASE_DIR: ", __dirname)
+
 // Create a new terminal instance
 function createTerminal(id, cwd = process.env.HOME) {
   const term = pty.spawn(shell, [], {

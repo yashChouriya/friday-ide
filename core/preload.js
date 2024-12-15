@@ -1,6 +1,5 @@
 const { contextBridge, ipcRenderer, shell } = require("electron");
 const path = require("path");
-const ReconnectingWebSocket = require("reconnecting-websocket");
 
 // Listen for window close event
 ipcRenderer.on("before-close", () => {

@@ -8,12 +8,11 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
     <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
-    <script src="fileTypeHelper.js"></script>
+    <script src="./utils/fileTypeHelper.js"></script>
     <script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
     <script src="node_modules/@xterm/addon-web-links/lib/addon-web-links.js"></script>
     <script src="node_modules/@xterm/addon-search/lib/addon-search.js"></script>
     <script src="node_modules/@xterm/addon-clipboard/lib/addon-clipboard.js"></script>
-    <script src="node_modules/markdown-it/lib/index.mjs"></script>
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js"
       integrity="sha512-SxQulwFs2B38bmUJtBSo9tD07MDrtCbY8me3AOZ14tRknCPTeMDLvCQV4ekhs8R0o9QPnW5HQanKfveexVcwLA=="
@@ -21,7 +20,7 @@
       referrerpolicy="no-referrer"
     ></script>
 
-    <script src="terminal.js"></script>
+    <script src="./services/terminal.js"></script>
   </head>
   <body>
     <div class="container">
@@ -181,19 +180,18 @@
         }
 
         const script = document.createElement("script");
-        script.src = "./renderer.js";
+        script.src = "./core/renderer.js";
         document.body.appendChild(script);
       });
     </script>
-    <script src="themes.js"></script>
-    <script src="themeColors.js"></script>
-    <script src="themeManager.js"></script>
-    <script src="sidebarManager.js"></script>
-    <script src="welcomeManager.js"></script>
-    <script src="settingsManager.js"></script>
-    <script src="chatManager.js"></script>
+    <script src="./services/themes.js"></script>
+    <script src="./utils/themeColors.js"></script>
+    <script src="./components/themeManager.js"></script>
+    <script src="./components/sidebarManager.js"></script>
+    <script src="./components/welcomeManager.js"></script>
+    <script src="./components/settingsManager.js"></script>
+    <script src="./components/chatManager.js"></script>
     <script>
-
       // Initialize sidebar manager
       window.sidebarManager = new SidebarManager();
       // Restore saved state

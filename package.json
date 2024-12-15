@@ -2,7 +2,7 @@
   "name": "friday-ide",
   "description": "A modern, lightweight Integrated Development Environment (IDE) built with Electron and Monaco Editor. Friday IDE provides a powerful, intuitive coding experience with a sleek VS Code-inspired interface, making it perfect for developers who want a fast, customizable editor for their projects.",
   "version": "1.0.0",
-  "main": "main.js",
+  "main": "./core/main.js",
   "scripts": {
     "start": "DISPLAY=:1 ELECTRON_DISABLE_SANDBOX=true electron .",
     "dev": "DISPLAY=:1 ELECTRON_DISABLE_SANDBOX=true nodemon --watch . --exec electron .",
