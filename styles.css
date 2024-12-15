@@ -324,14 +324,46 @@ body {
   user-select: none;
   position: relative;
   gap: 5px;
+  transition: all 0.2s ease;
+  
+  /* Slight gradient background for depth */
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.02),
+    rgba(0, 0, 0, 0.02)
+  );
+}
+
+.tab {
+  position: relative;  /* For absolute positioning of active indicator */
+  overflow: visible;   /* Allow overflow for the active indicator */
 }
 
 .tab.active {
   background-color: var(--bg-primary);
 }
 
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;  /* Align with bottom border */
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--button-bg);
+  box-shadow: 0 0 4px var(--button-bg);
+  transition: all 0.2s ease;
+}
+
 .tab:hover:not(.active) {
   background-color: var(--bg-hover);
+}
+
+/* Add hover effect to active tab */
+.tab.active:hover::after {
+  background-color: var(--button-hover);
+  box-shadow: 0 0 8px var(--button-hover);
+  height: 2.5px;
 }
 
 .tab-title {
@@ -358,6 +390,19 @@ body {
   vertical-align: middle;
   position: relative;
   top: -1px;
+  box-shadow: 0 0 4px var(--button-bg);
+  transition: all 0.2s ease;
+}
+
+/* Enhanced modified indicator for active tab */
+.tab.active.modified .tab-title::before {
+  background-color: var(--button-hover);
+  box-shadow: 0 0 6px var(--button-hover);
+}
+
+/* Hover effect for modified indicator */
+.tab:hover.modified .tab-title::before {
+  transform: scale(1.2);
 }
 
 .tab-close {
@@ -369,11 +414,29 @@ body {
   border-radius: 3px;
   font-size: 14px;
   color: var(--text-secondary);
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  margin-left: 4px;
+}
+
+.tab:hover .tab-close {
+  opacity: 1;
 }
 
 .tab-close:hover {
   background-color: var(--bg-hover);
-  color: var(--text-active);
+  color: var(--text-error);
+  transform: scale(1.1);
+}
+
+.tab.active .tab-close {
+  opacity: 0.8;
+}
+
+.tab.active .tab-close:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-error);
+  opacity: 1;
 }
 
 .tab-icon {
