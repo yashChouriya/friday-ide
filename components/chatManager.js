@@ -40,7 +40,7 @@ window.ChatManager = class ChatManager {
     this.chatPanel.className = "chat-panel hidden";
     this.chatPanel.innerHTML = `
       <div class="chat-panel-header">
-        <h3>Friday AI Assistant</h3>
+        <h3><span class="highlight">FRIDAY AI</span> ASSISTANT</h3>
         <button class="close-chat-button">
           <i class="fas fa-times"></i>
         </button>
@@ -325,7 +325,7 @@ window.ChatManager = class ChatManager {
   getIconForType(type) {
     switch (type) {
       case "user":
-        return '<i class="fas fa-user"></i>';
+        return '<i class="fas fa-message"></i>';
       case "assistant":
         return '<i class="fas fa-robot"></i>';
       case "system":
