@@ -90,6 +90,34 @@
             </div>
           </div>
         </div>
+        <div id="empty-editor">
+          <div class="empty-editor-content">
+            <div class="icon-container">
+              <i class="fas fa-file-code"></i>
+            </div>
+            <h2>No File Open</h2>
+            <p>Select a file from the explorer to start editing</p>
+            <div class="quick-actions">
+              <h3>Quick Actions</h3>
+              <div class="action-buttons">
+                <button class="action-button" id="new-file-button">
+                  <i class="fas fa-plus"></i>
+                  <span>New File</span>
+                </button>
+                <button class="action-button" id="open-file-button">
+                  <i class="fas fa-folder-open"></i>
+                  <span>Open File</span>
+                </button>
+              </div>
+              <div class="recent-files">
+                <h3>Recent Files</h3>
+                <div class="recent-files-list">
+                  <!-- Will be populated dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div id="terminal" class="hidden"></div>
       </div>
     </div>

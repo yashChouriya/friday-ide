@@ -16,6 +16,8 @@ class FileExplorer {
     this.fileTree = document.getElementById("file-tree");
     this.editorContainer = document.getElementById("monaco-editor");
     this.tabsContainer = document.querySelector(".tabs-container");
+    this.emptyEditor = document.getElementById("empty-editor");
+    this.recentFiles = new Set(); // Track recent files
     
     if (!this.fileTree || !this.editorContainer || !this.tabsContainer) {
       console.error('Required DOM elements not found');
@@ -49,6 +51,7 @@ class FileExplorer {
     this.setupOpenFolderButton();
     await this.loadSavedState();
     this.setupStateHandlers();
+    this.setupEmptyEditorHandlers();
   }
 
   async initializeMonaco() {
@@ -234,6 +237,7 @@ class FileExplorer {
         // Reset state for new folder
         this.expandedDirs.clear();
         this.lastOpenedFile = null;
+        this.recentFiles.clear(); // Clear recent files for new directory
 
         // Clear all tabs and models
         this.openedFiles.forEach(({ model }) => model.dispose());
@@ -420,6 +424,7 @@ class FileExplorer {
             await this.switchToFile(remainingFiles[remainingFiles.length - 1]);
           } else {
             this.lastOpenedFile = null;
+            this.checkEmptyEditorState();
           }
         }
       }
@@ -435,6 +440,9 @@ class FileExplorer {
       return;
     }
 
+    // Hide empty editor state
+    this.hideEmptyEditor();
+
     // Save current file's view state
     if (this.lastOpenedFile) {
       const currentFileData = this.openedFiles.get(this.lastOpenedFile);
@@ -442,6 +450,9 @@ class FileExplorer {
         currentFileData.viewState = this.editor.saveViewState();
       }
     }
+    
+    // Add to recent files
+    this.addToRecentFiles(filePath);
 
     // Update active tab
     const tabs = this.tabsContainer.querySelectorAll(".tab");
@@ -846,6 +857,112 @@ class FileExplorer {
     return FileTypeHelper.getLanguage(filePath);
   }
 
+  setupEmptyEditorHandlers() {
+    // Setup button handlers
+    const newFileButton = document.getElementById('new-file-button');
+    const openFileButton = document.getElementById('open-file-button');
+    
+    if (newFileButton) {
+      newFileButton.addEventListener('click', () => {
+        // TODO: Implement new file creation
+        console.log('New file button clicked');
+      });
+    }
+
+    if (openFileButton) {
+      openFileButton.addEventListener('click', () => {
+        // TODO: Implement file opening
+        console.log('Open file button clicked');
+      });
+    }
+
+    // Initial state check
+    this.checkEmptyEditorState();
+  }
+
+  showEmptyEditor() {
+    if (this.emptyEditor) {
+      this.emptyEditor.classList.add('visible');
+      this.updateRecentFilesList();
+    }
+  }
+
+  hideEmptyEditor() {
+    if (this.emptyEditor) {
+      this.emptyEditor.classList.remove('visible');
+    }
+  }
+
+  checkEmptyEditorState() {
+    if (this.currentPath && this.openedFiles.size === 0) {
+      this.showEmptyEditor();
+    } else {
+      this.hideEmptyEditor();
+    }
+  }
+
+  addToRecentFiles(filePath) {
+    // Add to recent files and maintain max size
+    this.recentFiles.delete(filePath); // Remove if exists
+    this.recentFiles.add(filePath);
+    
+    // Keep only last 5 files
+    if (this.recentFiles.size > 5) {
+      const firstItem = this.recentFiles.values().next().value;
+      this.recentFiles.delete(firstItem);
+    }
+
+    this.updateRecentFilesList();
+  }
+
+  updateRecentFilesList() {
+    const recentFilesSection = this.emptyEditor?.querySelector('.recent-files');
+    const recentFilesList = recentFilesSection?.querySelector('.recent-files-list');
+    if (!recentFilesList || !recentFilesSection) return;
+
+    // Clear the list
+    recentFilesList.innerHTML = '';
+
+    // Get recent files that still exist in the current directory
+    const validRecentFiles = Array.from(this.recentFiles)
+      .filter(filePath => filePath.startsWith(this.currentPath));
+
+    // Hide the entire section if no recent files
+    if (validRecentFiles.length === 0) {
+      recentFilesSection.style.display = 'none';
+      return;
+    }
+
+    // Show section and populate list
+    recentFilesSection.style.display = 'block';
+    validRecentFiles
+      .reverse()
+      .forEach(filePath => {
+        const item = document.createElement('div');
+        item.className = 'recent-file-item';
+        
+        const fileName = window.electronAPI.path.basename(filePath);
+        const relativePath = this.getRelativePath(filePath);
+        const fileInfo = FileTypeHelper.getFileInfo(filePath);
+
+        item.innerHTML = `
+          <i class="${fileInfo.icon}" style="color: ${fileInfo.color}"></i>
+          <span class="file-name">${fileName}</span>
+          <span class="file-path">${relativePath}</span>
+        `;
+
+        item.addEventListener('click', () => this.loadFile(filePath));
+        recentFilesList.appendChild(item);
+      });
+  }
+
+  getRelativePath(filePath) {
+    if (!this.currentPath || !filePath.startsWith(this.currentPath)) {
+      return filePath;
+    }
+    return filePath.substring(this.currentPath.length + 1);
+  }
+
   async openDirectory(dirPath) {
     try {
       if (!dirPath) return;
@@ -869,6 +986,9 @@ class FileExplorer {
       this.fileTree.appendChild(rootItem);
       rootItem.classList.add("expanded");
       await this.expandDirectory(rootItem);
+
+      // Show empty editor state when directory is first opened
+      this.checkEmptyEditorState();
     } catch (error) {
       console.error("Error opening directory:", error);
     }

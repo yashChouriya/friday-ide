@@ -1,0 +1,162 @@
+#empty-editor {
+  display: none; /* Will be shown when needed */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  z-index: 10;
+  transition: opacity 0.3s ease;
+}
+
+#empty-editor.visible {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.empty-editor-content {
+  text-align: center;
+  max-width: 600px;
+  padding: 2rem;
+}
+
+.empty-editor-content .icon-container {
+  margin-bottom: 1.5rem;
+}
+
+.empty-editor-content .icon-container i {
+  font-size: 3.5rem;
+  color: var(--button-bg);
+  opacity: 0.8;
+  text-shadow: 0 0 3px var(--button-bg);
+}
+
+.empty-editor-content h2 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-active);
+  font-weight: 300;
+}
+
+.empty-editor-content p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+.quick-actions {
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  border: 1px solid var(--border-subtle);
+}
+
+.quick-actions h3 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.action-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--button-bg);
+  transform: translateY(-1px);
+}
+
+.action-button:active {
+  transform: translateY(0);
+}
+
+.action-button i {
+  font-size: 1rem;
+  color: var(--button-bg);
+}
+
+.recent-files {
+  text-align: left;
+  margin-top: 1.5rem;
+}
+
+.recent-files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recent-file-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recent-file-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.recent-file-item i {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.recent-file-item .file-name {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-file-item .file-path {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-left: auto;
+}
+
+/* Empty state for recent files */
+/* Hide the recent files section by default */
+.recent-files {
+  display: none; /* Will be shown via JavaScript when there are recent files */
+}
+
+/* Quick actions section spacing when recent files are hidden */
+.quick-actions > :last-child {
+  margin-bottom: 0;
+}
+
+.action-buttons {
+  margin-bottom: 0; /* Remove margin when it's the last element */
+}
