@@ -65,8 +65,11 @@
   --scrollbar-height: 8px;
   --scrollbar-border-radius: 4px;
   --button-bg: #0e639c;
+  --button-bg-rgb: 14, 99, 156;
   --button-hover: #1177bb;
+  --button-hover-rgb: 17, 119, 187;
   --button-active: #13487b;
+  --button-active-rgb: 19, 72, 123;
   --input-bg: #3c3c3c;
   --input-border: #3c3c3c;
   --input-focused-border: #007acc;
