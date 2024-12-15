@@ -475,10 +475,27 @@ class FileExplorer {
 
   setupKeyboardShortcuts() {
     window.addEventListener("keydown", async (e) => {
+      // Ctrl/Cmd + S for save
       if (e.ctrlKey && e.key === "s") {
         e.preventDefault();
         if (this.lastOpenedFile) {
           await this.saveFile(this.lastOpenedFile);
+        }
+      }
+      
+      // Ctrl/Cmd + O for open folder
+      if ((e.ctrlKey || e.metaKey) && e.key === "o") {
+        e.preventDefault();
+        const openFolderBtn = document.getElementById("open-folder");
+        if (openFolderBtn) {
+          // Add a subtle flash effect to the button
+          openFolderBtn.style.transition = "background-color 0.2s ease";
+          openFolderBtn.style.backgroundColor = "var(--button-bg)";
+          setTimeout(() => {
+            openFolderBtn.style.backgroundColor = "";
+          }, 200);
+          
+          openFolderBtn.click();
         }
       }
     });

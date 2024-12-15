@@ -6,10 +6,22 @@ class WelcomeManager {
     this.welcomeOpenFolderButton = document.getElementById('welcome-open-folder');
     this.mainOpenFolderButton = document.getElementById('open-folder');
     this.fileTree = document.getElementById('file-tree');
+    this.logo = this.welcomeScreen?.querySelector('.logo-container i');
 
     // Bind methods
     this.handleFileTreeChange = this.handleFileTreeChange.bind(this);
     this.handleTabsChange = this.handleTabsChange.bind(this);
+    this.applyTheme = this.applyTheme.bind(this);
+
+    // Register with theme manager
+    if (window.themeManager) {
+      window.themeManager.registerComponent('welcomeScreen', this);
+    }
+
+    // Listen for theme changes
+    window.addEventListener('themeChanged', (event) => {
+      this.applyTheme(event.detail.theme);
+    });
 
     this.initialize();
   }
@@ -91,8 +103,65 @@ class WelcomeManager {
         if (this.editorTabs) {
           this.editorTabs.style.visibility = 'hidden';
         }
+
+        // Apply current theme when showing
+        const currentTheme = window.themeManager?.themeState.current || 'vs-dark';
+        this.applyTheme(currentTheme);
       }
     });
+  }
+
+  async applyTheme(themeName) {
+    if (!this.welcomeScreen) return;
+
+    try {
+      const themeColors = window.themeColors[themeName];
+      if (!themeColors) return;
+
+      // Update keyframe animations for the logo
+      const keyframes = `
+        @keyframes pulse {
+          0% {
+            text-shadow: 0 0 10px ${themeColors['--button-bg']}33;
+            transform: scale(1);
+          }
+          50% {
+            text-shadow: 0 0 20px ${themeColors['--button-bg']}66;
+            transform: scale(1.05);
+          }
+          100% {
+            text-shadow: 0 0 10px ${themeColors['--button-bg']}33;
+            transform: scale(1);
+          }
+        }
+      `;
+
+      // Update or create style element for animations
+      let styleEl = document.getElementById('welcome-animations');
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'welcome-animations';
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = keyframes;
+
+      // Update button shadow color
+      const button = this.welcomeScreen.querySelector('.welcome-button');
+      if (button) {
+        const buttonColor = themeColors['--button-bg'];
+        button.style.boxShadow = `0 2px 6px ${buttonColor}33`;
+      }
+
+      // Force animation restart on logo
+      if (this.logo) {
+        this.logo.style.animation = 'none';
+        this.logo.offsetHeight; // Trigger reflow
+        this.logo.style.animation = null;
+      }
+
+    } catch (error) {
+      console.error('Error applying theme to welcome screen:', error);
+    }
   }
 
   hideWelcomeScreen() {
