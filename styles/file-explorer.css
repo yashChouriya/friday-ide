@@ -63,6 +63,23 @@
   cursor: pointer;
   font-size: 11px;
   outline: none;
+  transition: all 0.2s ease;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#open-folder::after {
+  content: 'Ctrl+O';
+  opacity: 0;
+  font-size: 9px;
+  background: var(--bg-hover);
+  padding: 2px 4px;
+  border-radius: 3px;
+  margin-left: 4px;
+  color: var(--text-secondary);
+  transition: opacity 0.2s ease;
 }
 
 #open-folder:hover {
@@ -70,9 +87,14 @@
   border-color: var(--border-active);
 }
 
+#open-folder:hover::after {
+  opacity: 1;
+}
+
 #open-folder:active {
   background: var(--bg-active);
   border-color: var(--border-active);
+  transform: translateY(1px);
 }
 
 #file-tree {
