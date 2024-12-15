@@ -63,16 +63,7 @@
               <button id="open-folder">Open Folder</button>
             </div>
             <div id="file-tree"></div>
-            <!-- File Creation Overlay -->
-            <div class="file-creation-overlay">
-              <div class="file-creation-container">
-                <input type="text" class="file-creation-input" placeholder="filename" />
-                <button class="file-creation-button">
-                  <i class="fas fa-plus"></i>
-                </button>
-              </div>
-              <div class="file-creation-error"></div>
-            </div>
+
 
           </div>
         </div>
@@ -302,6 +293,17 @@
         window.chatManager = new window.ChatManager();
       });
     </script>
+    <!-- File Creation Overlay -->
+    <div class="file-creation-overlay">
+      <div class="file-creation-container">
+        <input type="text" class="file-creation-input" placeholder="filename" />
+        <button class="file-creation-button">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+      <div class="file-creation-error"></div>
+    </div>
+
     <!-- Context Menu (Moved outside to be a direct child of body) -->
     <div class="context-menu">
       <div class="context-menu-item" data-action="new-file">

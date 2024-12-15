@@ -1,0 +1,139 @@
+/* Common styles for overlays */
+.context-menu,
+.file-creation-overlay {
+  position: fixed;
+  background-color: rgba(var(--bg-primary-rgb, 30, 30, 30), 0.85);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  z-index: 99999;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2),
+              0 4px 16px rgba(0, 0, 0, 0.4);
+  display: none;
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+/* Context Menu specific styles */
+.context-menu {
+  padding: 4px 0;
+  min-width: 220px;
+  max-height: calc(100vh - 20px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  transform: scale(0.98);
+}
+
+.context-menu.visible {
+  display: block;
+  opacity: 1;
+  transform: scale(1);
+}
+
+.context-menu-item {
+  padding: 6px 10px 6px 32px;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: 13px;
+  white-space: nowrap;
+  position: relative;
+  user-select: none;
+}
+
+.context-menu-item:hover {
+  background-color: rgba(var(--bg-hover-rgb, 42, 42, 42), 0.8);
+}
+
+.context-menu-item .shortcut {
+  margin-left: 32px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.context-menu-item:hover .shortcut {
+  opacity: 1;
+}
+
+.context-menu-separator {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 4px 0;
+  opacity: 0.5;
+}
+
+/* File Creation Overlay specific styles */
+.file-creation-overlay {
+  padding: 8px;
+  transform: translateY(-4px);
+}
+
+.file-creation-overlay.visible {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.file-creation-container {
+  display: flex;
+  gap: 8px;
+  min-width: 300px;
+}
+
+.file-creation-input {
+  flex: 1;
+  background-color: rgba(var(--bg-secondary-rgb, 37, 37, 38), 0.9);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 6px 10px;
+  font-size: 13px;
+  outline: none;
+  border-radius: 3px;
+  min-width: 200px;
+}
+
+.file-creation-input:focus {
+  border-color: var(--button-bg);
+}
+
+.file-creation-button {
+  background: var(--button-bg);
+  border: none;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-creation-button:hover {
+  background: var(--button-hover);
+  transform: translateY(-1px);
+}
+
+.file-creation-button:active {
+  background: var(--button-active);
+  transform: translateY(0);
+}
+
+.file-creation-button i {
+  font-size: 12px;
+}
+
+.file-creation-error {
+  color: var(--text-error);
+  font-size: 11px;
+  margin-top: 8px;
+  padding: 4px 8px;
+  background-color: rgba(var(--bg-hover-rgb, 42, 42, 42), 0.8);
+  border-radius: 3px;
+  display: none;
+}
