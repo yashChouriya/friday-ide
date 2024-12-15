@@ -1,4 +1,4 @@
-<div align="center">
+<div align="center" width="100%">
   <img src="./icons/friday-ide-code.svg" alt="Friday IDE Logo" width="120px" />
 </div>
 
@@ -145,7 +145,7 @@ friday-ide/
 
 ## 🤝 Contributing
 
-We welcome contributions to Friday IDE! Here's how you can help:
+I welcome contributions to Friday IDE! Here's how you can help:
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
